@@ -1,0 +1,47 @@
+#Android generated
+bin
+gen
+lint.xml
+
+#Eclipse
+.project
+.classpath
+.settings
+.checkstyle
+
+#IntelliJ IDEA
+.idea
+*.iml
+*.ipr
+*.iws
+classes
+gen-external-apklibs
+
+#Maven
+target
+release.properties
+pom.xml.*
+
+#Ant
+build.xml
+ant.properties
+local.properties
+proguard.cfg
+proguard-project.txt
+
+#Other
+.DS_Store
+.tmp
+tmp
+
+#Source paths
+android-support-v4.jar.properties
+gson-2.2.2.jar.properties
+robotium-solo-3.6.jar.properties
+
+#Renderscript
+!.gitignore
+!gen/de/adorsys/android/trustseal/crypto/processing/ScriptC_normalize.java
+!gen/de/adorsys/android/trustseal/crypto/processing/ScriptC_mono.java
+!gen/de/adorsys/android/trustseal/crypto/processing/ScriptC_yuvToRgba.java
+!gen/de/adorsys/android/trustseal/crypto/processing/ScriptC_rotate.java
