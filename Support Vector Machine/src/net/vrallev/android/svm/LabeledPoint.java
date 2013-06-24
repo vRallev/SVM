@@ -41,7 +41,8 @@ public class LabeledPoint {
 
     public static enum ColorClass {
         RED(1, Color.parseColor("#FF4444"), R.drawable.ab_red_dot),
-        BLUE(-1, Color.parseColor("#33B5E5"), R.drawable.ab_blue_dot);
+        BLUE(-1, Color.parseColor("#33B5E5"), R.drawable.ab_blue_dot),
+        LINE(0, Color.WHITE, R.drawable.ab_line);
 
         private int mValue;
         private int mColor;
