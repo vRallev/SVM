@@ -9,29 +9,29 @@ import java.io.LineNumberReader;
  */
 public class LabeledPoint {
 
-    private int mX;
-    private int mY;
+    private float mX;
+    private float mY;
     private ColorClass mColorClass;
 
-    public LabeledPoint(int x, int y, ColorClass clazz) {
+    public LabeledPoint(float x, float y, ColorClass clazz) {
         mX = x;
         mY = y;
         mColorClass = clazz;
     }
 
-    public void setX(int x) {
+    public void setX(float x) {
         mX = x;
     }
 
-    public int getX() {
+    public float getX() {
         return mX;
     }
 
-    public void setY(int y) {
+    public void setY(float y) {
         mY = y;
     }
 
-    public int getY() {
+    public float getY() {
         return mY;
     }
 

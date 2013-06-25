@@ -31,8 +31,8 @@ public class CartesianCoordinateSystem extends View {
 
     private Paint mPaint;
 
-    private int mHeight;
-    private int mWidth;
+    private float mHeight;
+    private float mWidth;
 
     private List<LabeledPoint> mPoints;
     private Line mLine;
@@ -81,7 +81,7 @@ public class CartesianCoordinateSystem extends View {
         float strokeWidth = mPaint.getStrokeWidth();
 
         int drawText = 0;
-        for (int i = mHeight - 20; i >= 0; i -= 20) {
+        for (float i = mHeight - 20; i >= 0; i -= 20) {
             drawText++;
 
             canvas.drawLine(0, i, 10, i, mPaint);
@@ -94,7 +94,7 @@ public class CartesianCoordinateSystem extends View {
         }
 
         drawText = 0;
-        for (int i = 20; i < mWidth; i += 20) {
+        for (float i = 20; i < mWidth; i += 20) {
             drawText++;
 
             canvas.drawLine(i, mHeight, i, mHeight - 10, mPaint);
@@ -126,15 +126,15 @@ public class CartesianCoordinateSystem extends View {
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                LabeledPoint onClickPoint = getPointOnClick((int) event.getX(), (int) event.getY());
+                LabeledPoint onClickPoint = getPointOnClick(event.getX(), event.getY());
                 if (onClickPoint != null) {
                     mPoints.remove(onClickPoint);
 
                 } else if (LabeledPoint.ColorClass.LINE.equals(mColorClass)) {
-                    mLine = new Line((int) event.getX(), (int) event.getY(), (int) event.getX(), (int) event.getY());
+                    mLine = new Line(event.getX(), event.getY(), event.getX(), event.getY());
 
                 } else {
-                    mPendingPoint = new LabeledPoint((int) event.getX(), (int) event.getY(), mColorClass);
+                    mPendingPoint = new LabeledPoint(event.getX(), event.getY(), mColorClass);
                     mPoints.add(mPendingPoint);
                 }
                 invalidate();
@@ -142,21 +142,24 @@ public class CartesianCoordinateSystem extends View {
 
             case MotionEvent.ACTION_MOVE:
                 if (LabeledPoint.ColorClass.LINE.equals(mColorClass)) {
-                    mLine.setEndX((int) event.getX()).setEndY((int) event.getY());
+                    mLine.setEndX(event.getX()).setEndY(event.getY());
 
                 } else if (mPendingPoint != null) {
-                    mPendingPoint.setX((int) event.getX());
-                    mPendingPoint.setY((int) event.getY());
+                    mPendingPoint.setX(event.getX());
+                    mPendingPoint.setY(event.getY());
                 }
                 invalidate();
                 return true;
 
             case MotionEvent.ACTION_UP:
-                if (LabeledPoint.ColorClass.LINE.equals(mColorClass)
-                        && mLine != null
-                        && Math.sqrt(Math.pow(mLine.getStartX() - mLine.getEndX(), 2) + Math.pow(mLine.getStartY() - mLine.getEndY(), 2)) < 20) {
+                if (LabeledPoint.ColorClass.LINE.equals(mColorClass) && mLine != null) {
 
-                    mLine = null;
+                    if (Math.sqrt(Math.pow(mLine.getStartX() - mLine.getEndX(), 2) + Math.pow(mLine.getStartY() - mLine.getEndY(), 2)) < 20) {
+                        mLine = null;
+                    } else {
+                        mLine.stretchTo(0, mWidth, this);
+                        invalidate();
+                    }
                 }
                 mPendingPoint = null;
                 return true;
@@ -169,7 +172,7 @@ public class CartesianCoordinateSystem extends View {
         mColorClass = clazz;
     }
 
-    private LabeledPoint getPointOnClick(int x, int y) {
+    private LabeledPoint getPointOnClick(float x, float y) {
         for (LabeledPoint p : mPoints) {
             if (Math.pow(x - p.getX(), 2) + Math.pow(y - p.getY(), 2) <= Math.pow(CIRCLE_RADIUS * 2, 2)) {
                 return p;
