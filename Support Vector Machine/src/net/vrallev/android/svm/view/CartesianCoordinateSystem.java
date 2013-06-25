@@ -126,22 +126,23 @@ public class CartesianCoordinateSystem extends View {
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                LabeledPoint onClickPoint = getPointOnClick(event.getX(), event.getY());
-                if (onClickPoint != null) {
-                    mPoints.remove(onClickPoint);
-
-                } else if (LabeledPoint.ColorClass.LINE.equals(mColorClass)) {
+                if (LabeledPoint.ColorClass.LINE.equals(mColorClass)) {
                     mLine = new Line(event.getX(), event.getY(), event.getX(), event.getY());
 
                 } else {
-                    mPendingPoint = new LabeledPoint(event.getX(), event.getY(), mColorClass);
-                    mPoints.add(mPendingPoint);
+                    LabeledPoint onClickPoint = getPointOnClick(event.getX(), event.getY());
+                    if (onClickPoint != null) {
+                        mPoints.remove(onClickPoint);
+                    } else {
+                        mPendingPoint = new LabeledPoint(event.getX(), event.getY(), mColorClass);
+                        mPoints.add(mPendingPoint);
+                    }
                 }
                 invalidate();
                 return true;
 
             case MotionEvent.ACTION_MOVE:
-                if (LabeledPoint.ColorClass.LINE.equals(mColorClass)) {
+                if (LabeledPoint.ColorClass.LINE.equals(mColorClass) && mLine != null) {
                     mLine.setEndX(event.getX()).setEndY(event.getY());
 
                 } else if (mPendingPoint != null) {
