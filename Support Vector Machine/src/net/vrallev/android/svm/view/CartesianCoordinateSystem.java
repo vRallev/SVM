@@ -31,8 +31,8 @@ public class CartesianCoordinateSystem extends View {
 
     private Paint mPaint;
 
-    private float mHeight;
-    private float mWidth;
+    private int mHeight;
+    private int mWidth;
 
     private List<LabeledPoint> mPoints;
     private Line mLine;
@@ -159,7 +159,11 @@ public class CartesianCoordinateSystem extends View {
                         mLine = null;
                     } else {
                         mLine.stretchTo(0, mWidth, this);
+
+//                        GradientDescent gradientDescent = new GradientDescent(mLine, mPoints, mHeight);
+//                        mLine = gradientDescent.calc(5);
                         invalidate();
+                        L.d("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
                     }
                 }
                 mPendingPoint = null;

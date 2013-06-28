@@ -2,12 +2,10 @@ package net.vrallev.android.svm;
 
 import android.graphics.Color;
 
-import java.io.LineNumberReader;
-
 /**
  * @author Ralf Wondratschek
  */
-public class LabeledPoint {
+public class LabeledPoint implements Cloneable {
 
     private float mX;
     private float mY;
@@ -37,6 +35,15 @@ public class LabeledPoint {
 
     public ColorClass getColorClass() {
         return mColorClass;
+    }
+
+    public int getClassValue() {
+        return mColorClass.getValue();
+    }
+
+    @Override
+    protected LabeledPoint clone() {
+        return new LabeledPoint(mX, mY, mColorClass);
     }
 
     public static enum ColorClass {

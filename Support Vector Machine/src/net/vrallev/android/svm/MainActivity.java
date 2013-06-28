@@ -1,11 +1,14 @@
 package net.vrallev.android.svm;
 
 import android.os.Bundle;
-import android.app.Activity;
 import android.view.Menu;
 import android.view.MenuItem;
 import net.vrallev.android.base.BaseActivity;
+import net.vrallev.android.base.util.L;
 import net.vrallev.android.svm.view.CartesianCoordinateSystem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Ralf Wondratschek
@@ -41,13 +44,29 @@ public class MainActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_color_class:
-                mColorClass = LabeledPoint.ColorClass.getNext(mColorClass);
-                item.setIcon(mColorClass.getDrawable());
-                mCartesianCoordinateSystem.setColorClass(mColorClass);
+//                mColorClass = LabeledPoint.ColorClass.getNext(mColorClass);
+//                item.setIcon(mColorClass.getDrawable());
+//                mCartesianCoordinateSystem.setColorClass(mColorClass);
+                test();
                 return true;
 
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void test() {
+        List<LabeledPoint> points = new ArrayList<LabeledPoint>();
+        points.add(new LabeledPoint(2, 2, LabeledPoint.ColorClass.BLUE));
+        points.add(new LabeledPoint(4, 3, LabeledPoint.ColorClass.BLUE));
+        points.add(new LabeledPoint(1, 3, LabeledPoint.ColorClass.RED));
+        points.add(new LabeledPoint(2, 5, LabeledPoint.ColorClass.RED));
+
+        Line line = new Line(0, 2, 4, 4);
+
+        GradientDescent gradientDescent = new GradientDescent(line, points);
+        Line line1 = gradientDescent.calc(2);
+        L.debug("line1 " + line1.getIncrease() + " " + line1.getOffset());
+
     }
 }
