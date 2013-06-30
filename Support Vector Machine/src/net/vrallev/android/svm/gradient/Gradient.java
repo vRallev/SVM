@@ -26,8 +26,8 @@ public class Gradient {
     }
 
     private void normalize() {
-        float maxX = 0;
-        float maxY = 0;
+        double maxX = 0;
+        double maxY = 0;
 
         for (LabeledPoint p : mPoints) {
             maxX = Math.max(maxX, p.getX());
@@ -39,7 +39,7 @@ public class Gradient {
             p.setY(p.getY() / maxY);
         }
 
-        float y = mLine.getIncrease() + mLine.getOffset();
+        double y = mLine.getIncrease() + mLine.getOffset();
         mLine = new Line(0, mLine.getOffset() / maxY, 1 / maxX, y / maxY);
     }
 
@@ -49,15 +49,15 @@ public class Gradient {
         Argument[] arguments = new Argument[iterations + 1];
         arguments[0] = new Argument(mLine.getNormalVectorNew(), mLine.getOffset());
 
-        double stepSize = 0.000001;
+        double stepSize = 0.00001;
 
         for (int i = 1; i < arguments.length; i++) {
             Argument derivate = derivate(arguments[i - 1]).multipy(stepSize);
 
-            derivate = stop(derivate, stepSize);
-            if (derivate == null) {
-                return arguments[i - 1].toLine();
-            }
+//            derivate = stop(derivate, stepSize);
+//            if (derivate == null) {
+//                return arguments[i - 1].toLine();
+//            }
 
             arguments[i] = arguments[i - 1].minus(derivate);
 //            arguments[i] = arguments[i - 1].next(stepSize, derivate);
@@ -110,4 +110,8 @@ public class Gradient {
 
 //        return arg.getOffset() < 0.01 && arg.getNormalVector().getW1() < 0.01 && arg.getNormalVector().getW2() < 0.01;
     }
+
+//    private double getStepSize() {
+//
+//    }
 }

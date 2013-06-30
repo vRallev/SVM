@@ -45,7 +45,7 @@ public class GradientDescent {
 
     public Line calc(int iterations) {
         mArguments = new Argument[iterations + 1];
-        mArguments[0] = new Argument(mLine.getNormalVector()[0], mLine.getNormalVector()[1], mLine.getOffset());
+        mArguments[0] = new Argument((float) mLine.getNormalVector()[0], (float) mLine.getNormalVector()[1], (float) mLine.getOffset());
 
         float stepSize = 1 / getStepSize();
 
@@ -110,7 +110,7 @@ public class GradientDescent {
     }
 
     private boolean useNullFunction(LabeledPoint point, Argument arg) {
-        float res = 1 - point.getClassValue() * (arg.w1 * point.getX() + arg.w2 * point.getY() + arg.b);
+        double res = 1 - point.getClassValue() * (arg.w1 * point.getX() + arg.w2 * point.getY() + arg.b);
         return res <= 0;
     }
 

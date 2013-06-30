@@ -1,10 +1,6 @@
 package net.vrallev.android.svm;
 
-import android.animation.ObjectAnimator;
-import android.animation.PropertyValuesHolder;
-import android.animation.ValueAnimator;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import net.vrallev.android.svm.gradient.NormalVector;
 
 /**
@@ -12,19 +8,19 @@ import net.vrallev.android.svm.gradient.NormalVector;
  */
 public class Line implements Cloneable {
 
-    private float mStartX;
-    private float mStartY;
-    private float mEndX;
-    private float mEndY;
+    private double mStartX;
+    private double mStartY;
+    private double mEndX;
+    private double mEndY;
 
-    public Line(float startX, float startY, float endX, float endY) {
+    public Line(double startX, double startY, double endX, double endY) {
         mStartX = startX;
         mStartY = startY;
         mEndX = endX;
         mEndY = endY;
     }
 
-    public Line(float startX, float endX, GradientDescent.Argument argument) {
+    public Line(double startX, double endX, GradientDescent.Argument argument) {
         mStartX = startX;
         mEndX = endX;
 
@@ -35,52 +31,52 @@ public class Line implements Cloneable {
         mEndY = m * mEndX + offset;
     }
 
-    public float getStartX() {
+    public double getStartX() {
         return mStartX;
     }
 
-    public Line setStartX(float startX) {
+    public Line setStartX(double startX) {
         mStartX = startX;
         return this;
     }
 
-    public float getStartY() {
+    public double getStartY() {
         return mStartY;
     }
 
-    public Line setStartY(float startY) {
+    public Line setStartY(double startY) {
         mStartY = startY;
         return this;
     }
 
-    public float getEndX() {
+    public double getEndX() {
         return mEndX;
     }
 
-    public Line setEndX(float endX) {
+    public Line setEndX(double endX) {
         mEndX = endX;
         return this;
     }
 
-    public float getEndY() {
+    public double getEndY() {
         return mEndY;
     }
 
-    public Line setEndY(float endY) {
+    public Line setEndY(double endY) {
         this.mEndY = endY;
         return this;
     }
 
-    public float getIncrease() {
+    public double getIncrease() {
         return (mEndY - mStartY) / (mEndX - mStartX);
     }
 
-    public float getOffset() {
+    public double getOffset() {
         return mStartY - (getIncrease() * mStartX);
     }
 
-    public float[] getNormalVector() {
-        return new float[]{-1 * getIncrease(), 1};
+    public double[] getNormalVector() {
+        return new double[]{-1 * getIncrease(), 1};
     }
 
     public NormalVector getNormalVectorNew() {
@@ -92,8 +88,8 @@ public class Line implements Cloneable {
             flipPoints();
         }
 
-        float increase = getIncrease();
-        float offset = getOffset();
+        float increase = (float) getIncrease();
+        float offset = (float) getOffset();
 
         if (animateView == null) {
             setStartX(startX);
@@ -103,26 +99,26 @@ public class Line implements Cloneable {
             setEndY(increase * endX + offset);
 
         } else {
-            PropertyValuesHolder holderStartX = PropertyValuesHolder.ofFloat("startX", getStartX(), startX);
-            PropertyValuesHolder holderEndX = PropertyValuesHolder.ofFloat("endX", getEndX(), endX);
-            PropertyValuesHolder holderStartY = PropertyValuesHolder.ofFloat("startY", getStartY(), increase * startX + offset);
-            PropertyValuesHolder holderEndY = PropertyValuesHolder.ofFloat("endY", getEndY(), increase * endX + offset);
-
-            ObjectAnimator objectAnimator = ObjectAnimator.ofPropertyValuesHolder(this, holderStartX, holderEndX, holderStartY, holderEndY);
-            objectAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-            objectAnimator.setDuration(1000l);
-            objectAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    animateView.invalidate();
-                }
-            });
-            objectAnimator.start();
+//            PropertyValuesHolder holderStartX = PropertyValuesHolder.ofFloat("startX", getStartX(), startX);
+//            PropertyValuesHolder holderEndX = PropertyValuesHolder.ofFloat("endX", getEndX(), endX);
+//            PropertyValuesHolder holderStartY = PropertyValuesHolder.ofFloat("startY", getStartY(), increase * startX + offset);
+//            PropertyValuesHolder holderEndY = PropertyValuesHolder.ofFloat("endY", getEndY(), increase * endX + offset);
+//
+//            ObjectAnimator objectAnimator = ObjectAnimator.ofPropertyValuesHolder(this, holderStartX, holderEndX, holderStartY, holderEndY);
+//            objectAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+//            objectAnimator.setDuration(1000l);
+//            objectAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+//                @Override
+//                public void onAnimationUpdate(ValueAnimator animation) {
+//                    animateView.invalidate();
+//                }
+//            });
+//            objectAnimator.start();
         }
     }
 
     private void flipPoints() {
-        float val = getStartX();
+        double val = getStartX();
         setStartX(getEndX());
         setEndX(val);
 

@@ -7,29 +7,29 @@ import android.graphics.Color;
  */
 public class LabeledPoint implements Cloneable {
 
-    private float mX;
-    private float mY;
+    private double mX;
+    private double mY;
     private ColorClass mColorClass;
 
-    public LabeledPoint(float x, float y, ColorClass clazz) {
+    public LabeledPoint(double x, double y, ColorClass clazz) {
         mX = x;
         mY = y;
         mColorClass = clazz;
     }
 
-    public void setX(float x) {
+    public void setX(double x) {
         mX = x;
     }
 
-    public float getX() {
+    public double getX() {
         return mX;
     }
 
-    public void setY(float y) {
+    public void setY(double y) {
         mY = y;
     }
 
-    public float getY() {
+    public double getY() {
         return mY;
     }
 
