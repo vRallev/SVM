@@ -7,7 +7,7 @@ import java.util.List;
  */
 public class GradientDescent {
 
-    private static final float STEP_SIZE = 1.00f;
+    private static final float STEP_SIZE = 0.000001f;
     private static final float C = 10.0f;
 
     private Line mLine;
@@ -35,12 +35,22 @@ public class GradientDescent {
         }
     }
 
+    public float getStepSize() {
+        float sum = 0;
+        for (LabeledPoint p : mPoints) {
+            sum += Math.pow(p.getX() * p.getY(), 2);
+        }
+        return 2 * C * sum;
+    }
+
     public Line calc(int iterations) {
         mArguments = new Argument[iterations + 1];
         mArguments[0] = new Argument(mLine.getNormalVector()[0], mLine.getNormalVector()[1], mLine.getOffset());
 
+        float stepSize = 1 / getStepSize();
+
         for (int i = 1; i < mArguments.length; i++) {
-            mArguments[i] = mArguments[i - 1].minus(derivate(mArguments[i - 1]).multiply(STEP_SIZE));
+            mArguments[i] = mArguments[i - 1].minus(derivate(mArguments[i - 1]).multiply(stepSize));
 //            float factor = mArguments[i].w1;
 //            mArguments[i].w1 /= factor;
 //            mArguments[i].w2 /= factor;

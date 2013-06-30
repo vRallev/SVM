@@ -162,8 +162,8 @@ public class CartesianCoordinateSystem extends View {
 
 //                        GradientDescent gradientDescent = new GradientDescent(mLine, mPoints, mHeight);
 //                        mLine = gradientDescent.calc(5);
-                        invalidate();
-                        L.d("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+//                        invalidate();
+//                        L.d("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
                     }
                 }
                 mPendingPoint = null;

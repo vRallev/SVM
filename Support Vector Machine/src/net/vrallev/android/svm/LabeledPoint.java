@@ -42,7 +42,7 @@ public class LabeledPoint implements Cloneable {
     }
 
     @Override
-    protected LabeledPoint clone() {
+    public LabeledPoint clone() {
         return new LabeledPoint(mX, mY, mColorClass);
     }
 

@@ -1,10 +1,11 @@
 package net.vrallev.android.svm;
 
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import net.vrallev.android.svm.gradient.NormalVector;
 
 /**
  * @author Ralf Wondratschek
@@ -82,6 +83,10 @@ public class Line implements Cloneable {
         return new float[]{-1 * getIncrease(), 1};
     }
 
+    public NormalVector getNormalVectorNew() {
+        return new NormalVector(-1 * getIncrease(), 1);
+    }
+
     public void stretchTo(float startX, float endX, final View animateView) {
         if (getEndX() < getStartX()) {
             flipPoints();
@@ -98,35 +103,21 @@ public class Line implements Cloneable {
             setEndY(increase * endX + offset);
 
         } else {
-            long duration = 1000l;
-            AccelerateDecelerateInterpolator interpolator = new AccelerateDecelerateInterpolator();
+            PropertyValuesHolder holderStartX = PropertyValuesHolder.ofFloat("startX", getStartX(), startX);
+            PropertyValuesHolder holderEndX = PropertyValuesHolder.ofFloat("endX", getEndX(), endX);
+            PropertyValuesHolder holderStartY = PropertyValuesHolder.ofFloat("startY", getStartY(), increase * startX + offset);
+            PropertyValuesHolder holderEndY = PropertyValuesHolder.ofFloat("endY", getEndY(), increase * endX + offset);
 
-            ObjectAnimator animatorStartX = ObjectAnimator.ofFloat(this, "startX", getStartX(), startX);
-            animatorStartX.setDuration(duration);
-            animatorStartX.setInterpolator(interpolator);
-
-            ObjectAnimator animatorEndX = ObjectAnimator.ofFloat(this, "endX", getEndX(), endX);
-            animatorEndX.setDuration(duration);
-            animatorEndX.setInterpolator(interpolator);
-
-            ObjectAnimator animatorStartY = ObjectAnimator.ofFloat(this, "startY", getStartY(), increase * startX + offset);
-            animatorStartY.setDuration(duration);
-            animatorStartY.setInterpolator(interpolator);
-
-            ObjectAnimator animatorEndY = ObjectAnimator.ofFloat(this, "endY", getEndY(), increase * endX + offset);
-            animatorEndY.setDuration(duration);
-            animatorEndY.setInterpolator(interpolator);
-
-            animatorStartX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            ObjectAnimator objectAnimator = ObjectAnimator.ofPropertyValuesHolder(this, holderStartX, holderEndX, holderStartY, holderEndY);
+            objectAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+            objectAnimator.setDuration(1000l);
+            objectAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     animateView.invalidate();
                 }
             });
-
-            AnimatorSet animatorSet = new AnimatorSet();
-            animatorSet.playTogether(animatorStartX, animatorEndX, animatorStartY, animatorEndY);
-            animatorSet.start();
+            objectAnimator.start();
         }
     }
 
@@ -141,7 +132,7 @@ public class Line implements Cloneable {
     }
 
     @Override
-    protected Line clone() {
+    public Line clone() {
         return new Line(mStartX, mStartY, mEndX, mEndY);
     }
 }

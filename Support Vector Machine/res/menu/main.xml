@@ -6,6 +6,10 @@
         android:icon="@drawable/ab_red_dot"
         android:title="@string/color_class"/>
 
+    <item android:id="@+id/action_test"
+          android:showAsAction="ifRoom"
+          android:title="Test"/>
+
     <!--<item-->
         <!--android:id="@+id/action_settings"-->
         <!--android:orderInCategory="100"-->
