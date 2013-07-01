@@ -111,7 +111,7 @@ public class CartesianCoordinateSystem extends View {
 
         for (LabeledPoint p : mPoints) {
             mPaint.setColor(p.getColorClass().getColor());
-            canvas.drawCircle((float) p.getX() * max, (float) (1 - p.getY()) * max, CIRCLE_RADIUS, mPaint);
+            canvas.drawCircle((float) p.getX1() * max, (float) (1 - p.getX2()) * max, CIRCLE_RADIUS, mPaint);
         }
 
         mPaint.setStrokeWidth(strokeWidth);
@@ -156,8 +156,8 @@ public class CartesianCoordinateSystem extends View {
                     mLineBuilder.updateEndPoint(event.getX() / max, 1 - event.getY() / max);
 
                 } else if (mPendingPoint != null) {
-                    mPendingPoint.setX(event.getX() / max);
-                    mPendingPoint.setY(1 - event.getY() / max);
+                    mPendingPoint.setX1(event.getX() / max);
+                    mPendingPoint.setX2(1 - event.getY() / max);
                 }
                 invalidate();
                 return true;
@@ -218,7 +218,7 @@ public class CartesianCoordinateSystem extends View {
         double max = Math.max(mWidth, mHeight);
 
         for (LabeledPoint p : mPoints) {
-            if (Math.pow(x - p.getX() * max, 2) + Math.pow(y - (1 - p.getY()) * max, 2) <= Math.pow(CIRCLE_RADIUS * 2, 2)) {
+            if (Math.pow(x - p.getX1() * max, 2) + Math.pow(y - (1 - p.getX2()) * max, 2) <= Math.pow(CIRCLE_RADIUS * 2, 2)) {
                 return p;
             }
         }

@@ -47,11 +47,11 @@ public class GradientDecent {
         double offsetSum = 0;
         for (LabeledPoint point : mPoints) {
 
-            double factor = 1 - point.getClassValue() * (argVector.getW1() * point.getX() + argVector.getW2() * point.getY() + argOffset);
-            factor = Math.max(0, factor) * point.getClassValue();
+            double factor = 1 - point.getY() * (argVector.getW1() * point.getX1() + argVector.getW2() * point.getX2() + argOffset);
+            factor = Math.max(0, factor) * point.getY();
 
-            sum.setW1(sum.getW1() + point.getX() * factor);
-            sum.setW2(sum.getW2() + point.getY() * factor);
+            sum.setW1(sum.getW1() + point.getX1() * factor);
+            sum.setW2(sum.getW2() + point.getX2() * factor);
             offsetSum += factor;
         }
 
@@ -64,8 +64,8 @@ public class GradientDecent {
     public static double getLipschitzConstant(LabeledPoint[] points) {
         double sum = 0;
         for (LabeledPoint p : points) {
-            double norm = Math.sqrt(Math.pow(p.getX(), 2) + Math.pow(p.getY(), 2));
-            sum += Math.pow(p.getClassValue() * norm, 2);
+            double norm = Math.sqrt(Math.pow(p.getX1(), 2) + Math.pow(p.getX2(), 2));
+            sum += Math.pow(p.getY() * norm, 2);
         }
 
         return 2 * C * sum;

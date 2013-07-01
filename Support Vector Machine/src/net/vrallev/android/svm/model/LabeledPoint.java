@@ -5,42 +5,42 @@ package net.vrallev.android.svm.model;
  */
 public class LabeledPoint implements Cloneable {
 
-    private double mX;
-    private double mY;
+    private double mX1;
+    private double mX2;
     private ColorClass mColorClass;
 
     public LabeledPoint(double x, double y, ColorClass clazz) {
-        mX = x;
-        mY = y;
+        mX1 = x;
+        mX2 = y;
         mColorClass = clazz;
     }
 
-    public void setX(double x) {
-        mX = x;
+    public void setX1(double x1) {
+        mX1 = x1;
     }
 
-    public double getX() {
-        return mX;
+    public double getX1() {
+        return mX1;
     }
 
-    public void setY(double y) {
-        mY = y;
+    public void setX2(double x2) {
+        mX2 = x2;
     }
 
-    public double getY() {
-        return mY;
+    public double getX2() {
+        return mX2;
     }
 
     public ColorClass getColorClass() {
         return mColorClass;
     }
 
-    public int getClassValue() {
+    public int getY() {
         return mColorClass.getValue();
     }
 
     @Override
     public LabeledPoint clone() {
-        return new LabeledPoint(mX, mY, mColorClass);
+        return new LabeledPoint(mX1, mX2, mColorClass);
     }
 }
