@@ -49,7 +49,8 @@ public class Gradient {
         Argument[] arguments = new Argument[iterations + 1];
         arguments[0] = new Argument(mLine.getNormalVectorNew(), mLine.getOffset());
 
-        double stepSize = 0.00001;
+        double lipschitzConstant = getStepSize();
+        double stepSize = 1D / lipschitzConstant / 2;
 
         for (int i = 1; i < arguments.length; i++) {
             Argument derivate = derivate(arguments[i - 1]).multipy(stepSize);
@@ -92,26 +93,39 @@ public class Gradient {
     }
 
     private Argument stop(Argument arg, double stepSize) {
-        if (arg.getOffset() < stepSize * 10) {
-            arg.setOffset(0);
-        }
-        if (arg.getNormalVector().getW1() < stepSize * 10) {
-            arg.getNormalVector().setW1(0);
-        }
-        if (arg.getNormalVector().getW2() < stepSize * 10) {
-            arg.getNormalVector().setW2(0);
-        }
-
-        if (arg.getOffset() == 0 && arg.getNormalVector().getW1() == 0 && arg.getNormalVector().getW2() == 0) {
+        double val = Math.sqrt(Math.pow(arg.getOffset(), 2) + Math.pow(arg.getNormalVector().getW1(), 2) + Math.pow(arg.getNormalVector().getW2(), 2));
+        if (val < stepSize * 0.1) {
             return null;
         } else {
             return arg;
         }
 
+//        if (Math.abs(arg.getOffset()) < stepSize * 1) {
+//            arg.setOffset(0);
+//        }
+//        if (arg.getNormalVector().getW1() < stepSize * 1) {
+//            arg.getNormalVector().setW1(0);
+//        }
+//        if (arg.getNormalVector().getW2() < stepSize * 1) {
+//            arg.getNormalVector().setW2(0);
+//        }
+
+//        if (arg.getOffset() == 0 && arg.getNormalVector().getW1() == 0 && arg.getNormalVector().getW2() == 0) {
+//            return null;
+//        } else {
+//            return arg;
+//        }
+
 //        return arg.getOffset() < 0.01 && arg.getNormalVector().getW1() < 0.01 && arg.getNormalVector().getW2() < 0.01;
     }
 
-//    private double getStepSize() {
-//
-//    }
+    private double getStepSize() {
+        double sum = 0;
+        for (LabeledPoint p : mPoints) {
+            double norm = Math.sqrt(Math.pow(p.getX(), 2) + Math.pow(p.getY(), 2));
+            sum += Math.pow(p.getClassValue() * norm, 2);
+        }
+
+        return 2 * C * sum;
+    }
 }

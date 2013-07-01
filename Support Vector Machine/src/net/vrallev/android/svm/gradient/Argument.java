@@ -53,7 +53,7 @@ public class Argument implements Cloneable {
 
     public Line toLine() {
         double m = mNormalVector.getW1() * -1 / mNormalVector.getW2();
-        return new Line(0, (float)mOffset, 1, (float) (m + mOffset));
+        return new Line(0, mOffset, 1, m + mOffset);
     }
 
     @Override

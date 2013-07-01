@@ -85,5 +85,6 @@ public class MainActivity extends BaseActivity {
 
     private void test2() {
         mCartesianCoordinateSystem.test();
+//        mCartesianCoordinateSystem.defaultTest();
     }
 }

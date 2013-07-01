@@ -202,4 +202,20 @@ public class CartesianCoordinateSystem extends View {
 
         invalidate();
     }
+
+    public void defaultTest() {
+        mPoints.clear();
+        mPoints.add(new LabeledPoint(0.4, 0.4, LabeledPoint.ColorClass.RED));
+//        mPoints.add(new LabeledPoint(0.8, 0.6, LabeledPoint.ColorClass.RED));
+        mPoints.add(new LabeledPoint(0.6, 0.6, LabeledPoint.ColorClass.RED));
+        mPoints.add(new LabeledPoint(0.2, 0.6, LabeledPoint.ColorClass.BLUE));
+//        mPoints.add(new LabeledPoint(0.4, 1.0, LabeledPoint.ColorClass.BLUE));
+        mPoints.add(new LabeledPoint(0.4, 0.8, LabeledPoint.ColorClass.BLUE));
+
+        mLine = new Line(0, 0.2, 1, 0.9);
+
+        invalidate();
+
+        test();
+    }
 }
