@@ -1,16 +1,17 @@
 package net.vrallev.android.svm.gradient;
 
-import net.vrallev.android.svm.Line;
+import net.vrallev.android.svm.model.Line;
+import net.vrallev.android.svm.model.NormalVector;
 
 /**
  * @author Ralf Wondratschek
  */
-public class Argument implements Cloneable {
+public class GradientDescentArgument implements Cloneable {
 
     private NormalVector mNormalVector;
     private double mOffset;
 
-    public Argument(NormalVector normalVector, double offset) {
+    public GradientDescentArgument(NormalVector normalVector, double offset) {
         mNormalVector = normalVector;
         mOffset = offset;
     }
@@ -31,33 +32,32 @@ public class Argument implements Cloneable {
         mNormalVector = normalVector;
     }
 
-    public Argument multipy(double factor) {
-        Argument res = this.clone();
+    public GradientDescentArgument multipy(double factor) {
+        GradientDescentArgument res = this.clone();
         res.getNormalVector().setW1(res.getNormalVector().getW1() * factor);
         res.getNormalVector().setW2(res.getNormalVector().getW2() * factor);
         res.setOffset(res.getOffset() * factor);
         return res;
     }
 
-    public Argument minus(Argument arg) {
-        Argument res = this.clone();
+    public GradientDescentArgument minus(GradientDescentArgument arg) {
+        GradientDescentArgument res = this.clone();
         res.getNormalVector().setW1(res.getNormalVector().getW1() - arg.getNormalVector().getW1());
         res.getNormalVector().setW2(res.getNormalVector().getW2() - arg.getNormalVector().getW2());
         res.setOffset(res.getOffset() - arg.getOffset());
         return res;
     }
 
-    public Argument next(double stepSize, Argument derivate) {
-        return minus(derivate.multipy(stepSize));
+    public GradientDescentArgument next(double stepSize, GradientDescentArgument derivation) {
+        return minus(derivation.multipy(stepSize));
     }
 
     public Line toLine() {
-        double m = mNormalVector.getW1() * -1 / mNormalVector.getW2();
-        return new Line(0, mOffset, 1, m + mOffset);
+        return new Line(mNormalVector.clone(), mOffset);
     }
 
     @Override
-    public Argument clone() {
-        return new Argument(mNormalVector.clone(), mOffset);
+    public GradientDescentArgument clone() {
+        return new GradientDescentArgument(mNormalVector.clone(), mOffset);
     }
 }

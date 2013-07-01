@@ -8,11 +8,10 @@ import android.graphics.Paint.Style;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 import net.vrallev.android.base.util.L;
-import net.vrallev.android.svm.LabeledPoint;
-import net.vrallev.android.svm.Line;
-import net.vrallev.android.svm.gradient.Gradient;
+import net.vrallev.android.svm.MenuState;
+import net.vrallev.android.svm.model.LabeledPoint;
+import net.vrallev.android.svm.model.Line;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +36,11 @@ public class CartesianCoordinateSystem extends View {
     private int mWidth;
 
     private List<LabeledPoint> mPoints;
+
     private Line mLine;
-    private LabeledPoint.ColorClass mColorClass;
+    private Line.Builder mLineBuilder;
+
+    private MenuState mMenuState;
 
     @SuppressWarnings("UnusedDeclaration")
     public CartesianCoordinateSystem(Context context) {
@@ -116,8 +118,12 @@ public class CartesianCoordinateSystem extends View {
         mPaint.setColor(Color.WHITE);
 
         if (mLine != null) {
-            mPaint.setColor(LabeledPoint.ColorClass.LINE.getColor());
-            canvas.drawLine((float) mLine.getStartX() * max, (float) (1 - mLine.getStartY()) * max, (float) mLine.getEndX() * max, (float) (1 - mLine.getEndY()) * max, mPaint);
+            mPaint.setColor(Color.WHITE);
+            canvas.drawLine(0, (float) (1 - mLine.getY(0)) * max, max, (float) (1 - mLine.getY(1)) * max, mPaint);
+
+        } else if (mLineBuilder != null) {
+            mPaint.setColor(Color.WHITE);
+            canvas.drawLine((float) mLineBuilder.getStartX() * max, (float) (1 - mLineBuilder.getStartY()) * max, (float) mLineBuilder.getEndX() * max, (float) (1 - mLineBuilder.getEndY()) * max, mPaint);
         }
     }
 
@@ -125,19 +131,20 @@ public class CartesianCoordinateSystem extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        double max = Math.max(mWidth, mHeight);
+        float max = Math.max(mWidth, mHeight);
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (LabeledPoint.ColorClass.LINE.equals(mColorClass)) {
-                    mLine = new Line(event.getX() / max, 1 - event.getY() / max, event.getX() / max, 1 - event.getY() / max);
+                if (MenuState.STATE_LINE.equals(mMenuState)) {
+                    mLine = null;
+                    mLineBuilder = new Line.Builder(event.getX() / max, 1 - event.getY() / max, event.getX() / max, 1 - event.getY() / max);
 
                 } else {
                     LabeledPoint onClickPoint = getPointOnClick(event.getX(), event.getY());
                     if (onClickPoint != null) {
                         mPoints.remove(onClickPoint);
                     } else {
-                        mPendingPoint = new LabeledPoint(event.getX() / max, 1 - event.getY() / max, mColorClass);
+                        mPendingPoint = new LabeledPoint(event.getX() / max, 1 - event.getY() / max, mMenuState.getColorClass());
                         mPoints.add(mPendingPoint);
                     }
                 }
@@ -145,8 +152,8 @@ public class CartesianCoordinateSystem extends View {
                 return true;
 
             case MotionEvent.ACTION_MOVE:
-                if (LabeledPoint.ColorClass.LINE.equals(mColorClass) && mLine != null) {
-                    mLine.setEndX(event.getX() / max).setEndY(1 - event.getY() / max);
+                if (MenuState.STATE_LINE.equals(mMenuState) && mLineBuilder != null) {
+                    mLineBuilder.updateEndPoint(event.getX() / max, 1 - event.getY() / max);
 
                 } else if (mPendingPoint != null) {
                     mPendingPoint.setX(event.getX() / max);
@@ -156,18 +163,15 @@ public class CartesianCoordinateSystem extends View {
                 return true;
 
             case MotionEvent.ACTION_UP:
-                if (LabeledPoint.ColorClass.LINE.equals(mColorClass) && mLine != null) {
+                if (MenuState.STATE_LINE.equals(mMenuState) && mLineBuilder != null) {
 
-                    if (Math.sqrt(Math.pow(mLine.getStartX() - mLine.getEndX(), 2) + Math.pow(mLine.getStartY() - mLine.getEndY(), 2)) < 20 / max) {
+                    if (mLineBuilder.getLength() < 20 / max) {
                         mLine = null;
-                    } else {
-                        mLine.stretchTo(0, 1, null);
-                        invalidate();
+                        mLineBuilder = null;
 
-//                        GradientDescent gradientDescent = new GradientDescent(mLine, mPoints, mHeight);
-//                        mLine = gradientDescent.calc(5);
-//                        invalidate();
-//                        L.d("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+                    } else {
+                        mLineBuilder.buildAnimate(this);
+                        invalidate();
                     }
                 }
                 mPendingPoint = null;
@@ -177,8 +181,37 @@ public class CartesianCoordinateSystem extends View {
         return super.onTouchEvent(event);
     }
 
-    public void setColorClass(LabeledPoint.ColorClass clazz) {
-        mColorClass = clazz;
+    public void setMenuState(MenuState menuState) {
+        mMenuState = menuState;
+    }
+
+    public void setLine(Line line) {
+        mLine = line;
+        mLineBuilder = null;
+        invalidate();
+    }
+
+    public Line getLine() {
+        if (mLine != null) {
+            return mLine;
+        } else if (mLineBuilder != null) {
+            return mLineBuilder.build();
+        }
+        return null;
+    }
+
+    public List<LabeledPoint> getPoints() {
+        return mPoints;
+    }
+
+    public void addPoint(LabeledPoint point) {
+        mPoints.add(point);
+        invalidate();
+    }
+
+    public void clearPoints() {
+        mPoints.clear();
+        invalidate();
     }
 
     private LabeledPoint getPointOnClick(float x, float y) {
@@ -191,31 +224,5 @@ public class CartesianCoordinateSystem extends View {
         }
 
         return null;
-    }
-
-    public void test() {
-        Gradient gradient = new Gradient(mLine, mPoints);
-        Line line = gradient.run(10000);
-        mLine = line;
-
-        Toast.makeText(getContext(), "y = " + Math.round(line.getIncrease() * 100) / 100D + " * x + " + Math.round(line.getOffset() * 100) / 100D, Toast.LENGTH_SHORT).show();
-
-        invalidate();
-    }
-
-    public void defaultTest() {
-        mPoints.clear();
-        mPoints.add(new LabeledPoint(0.4, 0.4, LabeledPoint.ColorClass.RED));
-//        mPoints.add(new LabeledPoint(0.8, 0.6, LabeledPoint.ColorClass.RED));
-        mPoints.add(new LabeledPoint(0.6, 0.6, LabeledPoint.ColorClass.RED));
-        mPoints.add(new LabeledPoint(0.2, 0.6, LabeledPoint.ColorClass.BLUE));
-//        mPoints.add(new LabeledPoint(0.4, 1.0, LabeledPoint.ColorClass.BLUE));
-        mPoints.add(new LabeledPoint(0.4, 0.8, LabeledPoint.ColorClass.BLUE));
-
-        mLine = new Line(0, 0.2, 1, 0.9);
-
-        invalidate();
-
-        test();
     }
 }
