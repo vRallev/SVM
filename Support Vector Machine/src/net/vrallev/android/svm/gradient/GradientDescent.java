@@ -14,6 +14,7 @@ public class GradientDescent implements Optimizer {
 
     private Line mLine;
     private LabeledPoint[] mPoints;
+    private static final double STOP_DIFFERENCE = 0.00001;
 
     public GradientDescent(Line line, List<LabeledPoint> points) {
         mLine = line.clone();
@@ -34,6 +35,10 @@ public class GradientDescent implements Optimizer {
             GradientDescentArgument derivation = calcDerivation(arguments[i - 1]);
 
             arguments[i] = arguments[i - 1].next(stepSize, derivation);
+
+            if (stop(arguments[i - 1], arguments[i])) {
+                return arguments[i].toLine();
+            }
         }
 
         return arguments[arguments.length - 1].toLine();
@@ -61,7 +66,7 @@ public class GradientDescent implements Optimizer {
         return new GradientDescentArgument(resVec, resOffset);
     }
 
-    public static double getLipschitzConstant(LabeledPoint[] points) {
+    private static double getLipschitzConstant(LabeledPoint[] points) {
         double sum = 0;
         double sum2 = 0;
         for (LabeledPoint p : points) {
@@ -74,5 +79,11 @@ public class GradientDescent implements Optimizer {
         sum2 = 1 * 2 * C * sum2;
 
         return Math.max(Math.max(Math.max(sum, sum2), 2 * C), 1);
+    }
+
+    private boolean stop(GradientDescentArgument before, GradientDescentArgument after) {
+        return Math.abs(Math.abs(before.getNormalVector().getW1()) - Math.abs(after.getNormalVector().getW1())) < STOP_DIFFERENCE / 10
+                && Math.abs(Math.abs(before.getNormalVector().getW2()) - Math.abs(after.getNormalVector().getW2())) < STOP_DIFFERENCE
+                && Math.abs(Math.abs(before.getOffset()) - Math.abs(after.getOffset())) < STOP_DIFFERENCE;
     }
 }

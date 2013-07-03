@@ -12,15 +12,25 @@ import java.util.List;
  */
 public class SubGradientDescent implements Optimizer {
 
+    private static final double DEFAULT_STEP_PARAMETER = 100D;
+    private static final double STOP_DIFFERENCE = 0.001;
+
     private Line mLine;
     private LabeledPoint[] mPoints;
+    private double mStepParameter;
 
     public SubGradientDescent(Line line, List<LabeledPoint> points) {
+        this(line, points, DEFAULT_STEP_PARAMETER);
+    }
+
+    public SubGradientDescent(Line line, List<LabeledPoint> points, double stepParameter) {
         mLine = line.clone();
         mPoints = new LabeledPoint[points.size()];
         for (int i = 0; i < mPoints.length; i++) {
             mPoints[i] = points.get(i).clone();
         }
+
+        mStepParameter = stepParameter;
     }
 
     @Override
@@ -28,19 +38,21 @@ public class SubGradientDescent implements Optimizer {
         GradientDescentArgument[] arguments = new GradientDescentArgument[iterations + 1];
         arguments[0] = new GradientDescentArgument(mLine.getNormalVector().clone(), mLine.getOffset());
 
-        final double stepSize = 1D / GradientDescent.getLipschitzConstant(mPoints);
-
         for (int i = 1; i < arguments.length; i++) {
             GradientDescentArgument subGradient = getSubGradient(arguments[i - 1], 1D / 2D);
-            //GradientDescentArgument derivation = calcDerivation(arguments[i - 1]);
 
+            double stepSize = getStepSize(i, mStepParameter);
             arguments[i] = arguments[i - 1].minus(subGradient.multipy(1D / subGradient.norm()).multipy(stepSize));
+
+            if (stop(arguments[i - 1], arguments[i])) {
+                return arguments[i].toLine();
+            }
         }
 
         return arguments[arguments.length - 1].toLine();
     }
 
-    public GradientDescentArgument getSubGradient(GradientDescentArgument arg, double t) {
+    private GradientDescentArgument getSubGradient(GradientDescentArgument arg, double t) {
         double argOffset = arg.getOffset();
         NormalVector argVector = arg.getNormalVector();
 
@@ -71,5 +83,15 @@ public class SubGradientDescent implements Optimizer {
         double resOffset = C * offsetSum;
 
         return new GradientDescentArgument(resVec, resOffset);
+    }
+
+    private double getStepSize(int iteration, double stepParameter) {
+        return stepParameter / iteration;
+    }
+
+    private boolean stop(GradientDescentArgument before, GradientDescentArgument after) {
+        return Math.abs(Math.abs(before.getNormalVector().getW1()) - Math.abs(after.getNormalVector().getW1())) < STOP_DIFFERENCE
+                && Math.abs(Math.abs(before.getNormalVector().getW2()) - Math.abs(after.getNormalVector().getW2())) < STOP_DIFFERENCE
+                && Math.abs(Math.abs(before.getOffset()) - Math.abs(after.getOffset())) < STOP_DIFFERENCE;
     }
 }
