@@ -10,12 +10,12 @@ import java.util.List;
 /**
  * @author Ralf Wondratschek
  */
-public class GradientDecent implements Optimizer {
+public class GradientDescent implements Optimizer {
 
     private Line mLine;
     private LabeledPoint[] mPoints;
 
-    public GradientDecent(Line line, List<LabeledPoint> points) {
+    public GradientDescent(Line line, List<LabeledPoint> points) {
         mLine = line.clone();
         mPoints = new LabeledPoint[points.size()];
         for (int i = 0; i < mPoints.length; i++) {
@@ -74,7 +74,5 @@ public class GradientDecent implements Optimizer {
         sum2 = 1 * 2 * C * sum2;
 
         return Math.max(Math.max(Math.max(sum, sum2), 2 * C), 1);
-
-//        return 2 * C * sum;
     }
 }

@@ -5,7 +5,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 import net.vrallev.android.base.BaseActivity;
-import net.vrallev.android.svm.gradient.GradientDecent;
+import net.vrallev.android.svm.gradient.GradientDescent;
+import net.vrallev.android.svm.gradient.SubGradientDescent;
 import net.vrallev.android.svm.model.ColorClass;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
@@ -71,7 +72,7 @@ public class MainActivity extends BaseActivity {
             mCartesianCoordinateSystem.setLine(line);
         }
 
-        GradientDecent gradientDecent = new GradientDecent(line, mCartesianCoordinateSystem.getPoints());
+        Optimizer gradientDecent = new GradientDescent(line, mCartesianCoordinateSystem.getPoints());
         line = gradientDecent.optimize(10000);
 
         mCartesianCoordinateSystem.setLine(line);
@@ -88,7 +89,7 @@ public class MainActivity extends BaseActivity {
         mCartesianCoordinateSystem.addPoint(new LabeledPoint(0.4, 1.0, ColorClass.BLUE));
 //        mCartesianCoordinateSystem.addPoint(new LabeledPoint(0.4, 0.8, ColorClass.BLUE));
 
-        mCartesianCoordinateSystem.setLine(new Line(0, 0.2, 1, 0.9));
+        mCartesianCoordinateSystem.setLine(new Line(0, 0.4, 1, 0.9));
 
         test();
     }

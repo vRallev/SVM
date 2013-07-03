@@ -57,6 +57,10 @@ public class GradientDescentArgument implements Cloneable {
         return new Line(mNormalVector.clone(), offset);
     }
 
+    public double norm() {
+        return Math.sqrt(Math.pow(mNormalVector.getW1(), 2) + Math.pow(mNormalVector.getW2(), 2) + Math.pow(mOffset, 2));
+    }
+
     @Override
     public GradientDescentArgument clone() {
         return new GradientDescentArgument(mNormalVector.clone(), mOffset);
