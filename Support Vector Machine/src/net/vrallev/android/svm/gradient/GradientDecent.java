@@ -1,5 +1,6 @@
 package net.vrallev.android.svm.gradient;
 
+import net.vrallev.android.svm.Optimizer;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
 import net.vrallev.android.svm.model.NormalVector;
@@ -9,9 +10,7 @@ import java.util.List;
 /**
  * @author Ralf Wondratschek
  */
-public class GradientDecent {
-
-    public static final double C = 10.0;
+public class GradientDecent implements Optimizer {
 
     private Line mLine;
     private LabeledPoint[] mPoints;
@@ -24,11 +23,12 @@ public class GradientDecent {
         }
     }
 
+    @Override
     public Line optimize(int iterations) {
         GradientDescentArgument[] arguments = new GradientDescentArgument[iterations + 1];
         arguments[0] = new GradientDescentArgument(mLine.getNormalVector().clone(), mLine.getOffset());
 
-        final double stepSize = 1D / getLipschitzConstant(mPoints) / 4;
+        final double stepSize = 1D / getLipschitzConstant(mPoints);
 
         for (int i = 1; i < arguments.length; i++) {
             GradientDescentArgument derivation = calcDerivation(arguments[i - 1]);
@@ -63,11 +63,18 @@ public class GradientDecent {
 
     public static double getLipschitzConstant(LabeledPoint[] points) {
         double sum = 0;
+        double sum2 = 0;
         for (LabeledPoint p : points) {
             double norm = Math.sqrt(Math.pow(p.getX1(), 2) + Math.pow(p.getX2(), 2));
-            sum += Math.pow(p.getY() * norm, 2);
+            sum += Math.pow(norm, 2);
+            sum2 += norm;
         }
 
-        return 2 * C * sum;
+        sum = 1 + 2 * C * sum;
+        sum2 = 1 * 2 * C * sum2;
+
+        return Math.max(Math.max(Math.max(sum, sum2), 2 * C), 1);
+
+//        return 2 * C * sum;
     }
 }
