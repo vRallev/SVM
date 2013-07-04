@@ -29,12 +29,16 @@ public final class OptimizerCalculator {
         new Thread(mRunnable).start();
     }
 
+    public boolean isCalculating() {
+        return mOptimizer != null;
+    }
+
     private Runnable mRunnable = new Runnable() {
 
         @Override
         public void run() {
             Line result = mOptimizer.optimize();
-            EventBus.getDefault().post(new ResultEvent(result));
+            EventBus.getDefault().postSticky(new ResultEvent(result));
             mOptimizer = null;
         }
     };

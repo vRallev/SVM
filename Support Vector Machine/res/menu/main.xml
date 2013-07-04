@@ -1,23 +1,31 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/action_color_class"
-        android:showAsAction="always"
-        android:icon="@drawable/ab_red_dot"
-        android:title="@string/color_class"/>
+            android:id="@+id/action_color_class"
+            android:showAsAction="always"
+            android:icon="@drawable/ab_red_dot"
+            android:title="@string/color_class"/>
 
-    <item android:id="@+id/action_test"
-          android:showAsAction="never"
-          android:title="Test"/>
+    <item
+            android:id="@+id/action_refresh"
+            android:actionViewClass="com.manuelpeinado.refreshactionitem.RefreshActionItem"
+            android:showAsAction="always"
+            android:title="@string/refresh"/>
 
-    <item android:id="@+id/action_test_default"
-          android:showAsAction="never"
-          android:title="Test Default"/>
+    <item
+            android:id="@+id/action_test"
+            android:showAsAction="never"
+            android:title="Test"/>
+
+    <item
+            android:id="@+id/action_test_default"
+            android:showAsAction="never"
+            android:title="Test Default"/>
 
     <!--<item-->
-        <!--android:id="@+id/action_settings"-->
-        <!--android:orderInCategory="100"-->
-        <!--android:showAsAction="never"-->
-        <!--android:title="@string/action_settings"/>-->
+    <!--android:id="@+id/action_settings"-->
+    <!--android:orderInCategory="100"-->
+    <!--android:showAsAction="never"-->
+    <!--android:title="@string/action_settings"/>-->
 
 </menu>

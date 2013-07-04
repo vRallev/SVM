@@ -3,9 +3,9 @@ package net.vrallev.android.svm;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
-import android.widget.Toast;
 import com.google.gson.Gson;
+import com.manuelpeinado.refreshactionitem.ProgressIndicatorType;
+import com.manuelpeinado.refreshactionitem.RefreshActionItem;
 import de.greenrobot.event.EventBus;
 import net.vrallev.android.base.BaseActivity;
 import net.vrallev.android.svm.gradient.GradientDescent;
@@ -18,19 +18,19 @@ import net.vrallev.android.svm.view.CartesianCoordinateSystem;
 /**
  * @author Ralf Wondratschek
  */
+@SuppressWarnings("UnusedDeclaration")
 public class MainActivity extends BaseActivity {
 
     private CartesianCoordinateSystem mCartesianCoordinateSystem;
 
     private MenuState mMenuState;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    private RefreshActionItem mRefreshActionItem;
 
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-
-		setContentView(R.layout.activity_main);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
         mCartesianCoordinateSystem = (CartesianCoordinateSystem) findViewById(R.id.coordinate_system);
 
@@ -46,12 +46,12 @@ public class MainActivity extends BaseActivity {
         }
 
         mCartesianCoordinateSystem.setMenuState(mMenuState);
-	}
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-        EventBus.getDefault().register(this);
+        EventBus.getDefault().registerSticky(this);
     }
 
     @Override
@@ -61,26 +61,29 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
 
         MenuItem item = menu.findItem(R.id.action_color_class);
         item.setIcon(mMenuState.getDrawable());
 
-        return true;
-	}
+        item = menu.findItem(R.id.action_refresh);
+        mRefreshActionItem = (RefreshActionItem) item.getActionView();
+        mRefreshActionItem.setMenuItem(item);
+        mRefreshActionItem.setProgressIndicatorType(ProgressIndicatorType.INDETERMINATE);
+        mRefreshActionItem.setRefreshActionListener(new RefreshActionItem.RefreshActionListener() {
+            @Override
+            public void onRefreshButtonClick(RefreshActionItem sender) {
+//                mRefreshActionItem.showProgress(true);
+                mRefreshActionItem.hideBadge();
+            }
+        });
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        boolean res = super.onPrepareOptionsMenu(menu);
-
-        if (test) {
-            menu.findItem(R.id.action_color_class).setVisible(false);
-            menu.findItem(R.id.action_test).setVisible(false);
-            menu.findItem(R.id.action_test_default).setVisible(false);
+        if (OptimizerCalculator.getInstance().isCalculating()) {
+            mRefreshActionItem.showProgress(true);
         }
 
-        return res;
+        return true;
     }
 
     @Override
@@ -111,13 +114,11 @@ public class MainActivity extends BaseActivity {
         outState.putString(MenuState.class.getName(), new Gson().toJson(mMenuState));
     }
 
-    boolean test = false;
-
     public void onEventMainThread(OptimizerCalculator.ResultEvent event) {
         mCartesianCoordinateSystem.setLine(event.getLine());
-        setProgressBarIndeterminateVisibility(false);
-        test = false;
-        invalidateOptionsMenu();
+        mRefreshActionItem.showProgress(false);
+
+        EventBus.getDefault().removeStickyEvent(event);
     }
 
     private void test() {
@@ -130,11 +131,7 @@ public class MainActivity extends BaseActivity {
         Optimizer gradientDecent = new GradientDescent(line, mCartesianCoordinateSystem.getPoints());
         OptimizerCalculator.getInstance().calculate(gradientDecent);
 
-        test = true;
-        invalidateOptionsMenu();
-        setProgressBarIndeterminateVisibility(true);
-
-        Toast.makeText(this, "y = " + Math.round(line.getIncrease() * 100) / 100D + " * x + " + Math.round(line.getOffset() * 100) / 100D, Toast.LENGTH_SHORT).show();
+        mRefreshActionItem.showProgress(true);
     }
 
     private void testDefault() {

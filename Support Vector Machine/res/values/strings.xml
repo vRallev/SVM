@@ -4,5 +4,6 @@
     <string name="app_name">Support Vector Machine</string>
     <string name="action_settings">Settings</string>
     <string name="color_class">Color Class</string>
+    <string name="refresh">Refresh</string>
 
 </resources>
