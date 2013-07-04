@@ -3,7 +3,10 @@ package net.vrallev.android.svm;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 import android.widget.Toast;
+import com.google.gson.Gson;
+import de.greenrobot.event.EventBus;
 import net.vrallev.android.base.BaseActivity;
 import net.vrallev.android.svm.gradient.GradientDescent;
 import net.vrallev.android.svm.model.ColorClass;
@@ -24,15 +27,40 @@ public class MainActivity extends BaseActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
 		setContentView(R.layout.activity_main);
 
         mCartesianCoordinateSystem = (CartesianCoordinateSystem) findViewById(R.id.coordinate_system);
 
-        mMenuState = MenuState.STATE_RED;
+        if (savedInstanceState != null) {
+            String json = savedInstanceState.getString(MenuState.class.getName(), null);
+            if (json != null) {
+                mMenuState = new Gson().fromJson(json, MenuState.class);
+            }
+        }
+
+        if (mMenuState == null) {
+            mMenuState = MenuState.STATE_RED;
+        }
+
         mCartesianCoordinateSystem.setMenuState(mMenuState);
 	}
 
-	@Override
+    @Override
+    protected void onResume() {
+        super.onResume();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onPause() {
+        EventBus.getDefault().unregister(this);
+        super.onPause();
+    }
+
+    @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main, menu);
 
@@ -41,6 +69,19 @@ public class MainActivity extends BaseActivity {
 
         return true;
 	}
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        boolean res = super.onPrepareOptionsMenu(menu);
+
+        if (test) {
+            menu.findItem(R.id.action_color_class).setVisible(false);
+            menu.findItem(R.id.action_test).setVisible(false);
+            menu.findItem(R.id.action_test_default).setVisible(false);
+        }
+
+        return res;
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -64,6 +105,21 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(MenuState.class.getName(), new Gson().toJson(mMenuState));
+    }
+
+    boolean test = false;
+
+    public void onEventMainThread(OptimizerCalculator.ResultEvent event) {
+        mCartesianCoordinateSystem.setLine(event.getLine());
+        setProgressBarIndeterminateVisibility(false);
+        test = false;
+        invalidateOptionsMenu();
+    }
+
     private void test() {
         Line line = mCartesianCoordinateSystem.getLine();
         if (line == null) {
@@ -72,9 +128,11 @@ public class MainActivity extends BaseActivity {
         }
 
         Optimizer gradientDecent = new GradientDescent(line, mCartesianCoordinateSystem.getPoints());
-        line = gradientDecent.optimize(500000);
+        OptimizerCalculator.getInstance().calculate(gradientDecent);
 
-        mCartesianCoordinateSystem.setLine(line);
+        test = true;
+        invalidateOptionsMenu();
+        setProgressBarIndeterminateVisibility(true);
 
         Toast.makeText(this, "y = " + Math.round(line.getIncrease() * 100) / 100D + " * x + " + Math.round(line.getOffset() * 100) / 100D, Toast.LENGTH_SHORT).show();
     }
@@ -83,10 +141,8 @@ public class MainActivity extends BaseActivity {
         mCartesianCoordinateSystem.clearPoints();
         mCartesianCoordinateSystem.addPoint(new LabeledPoint(0.4, 0.4, ColorClass.RED));
         mCartesianCoordinateSystem.addPoint(new LabeledPoint(0.8, 0.6, ColorClass.RED));
-//        mCartesianCoordinateSystem.addPoint(new LabeledPoint(0.6, 0.6, ColorClass.RED));
         mCartesianCoordinateSystem.addPoint(new LabeledPoint(0.2, 0.6, ColorClass.BLUE));
         mCartesianCoordinateSystem.addPoint(new LabeledPoint(0.4, 1.0, ColorClass.BLUE));
-//        mCartesianCoordinateSystem.addPoint(new LabeledPoint(0.4, 0.8, ColorClass.BLUE));
 
         mCartesianCoordinateSystem.setLine(new Line(0, 0.4, 1, 0.9));
 

@@ -1,13 +1,20 @@
 package net.vrallev.android.svm.view;
 
+import android.animation.*;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.Rect;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import net.vrallev.android.base.util.L;
 import net.vrallev.android.svm.MenuState;
 import net.vrallev.android.svm.model.LabeledPoint;
@@ -31,6 +38,7 @@ public class CartesianCoordinateSystem extends View {
     private static final int CIRCLE_RADIUS = 20;
 
     private Paint mPaint;
+    private Rect mTextBounds;
 
     private int mHeight;
     private int mWidth;
@@ -41,6 +49,8 @@ public class CartesianCoordinateSystem extends View {
     private Line.Builder mLineBuilder;
 
     private MenuState mMenuState;
+
+    private ObjectAnimator mObjectAnimator;
 
     @SuppressWarnings("UnusedDeclaration")
     public CartesianCoordinateSystem(Context context) {
@@ -69,6 +79,8 @@ public class CartesianCoordinateSystem extends View {
         mPaint.setStrokeWidth(STROKE_WIDTH);
 
         mPoints = new ArrayList<LabeledPoint>();
+
+        mTextBounds = new Rect();
     }
 
     @Override
@@ -84,34 +96,58 @@ public class CartesianCoordinateSystem extends View {
 
         float strokeWidth = mPaint.getStrokeWidth();
 
-        int max = Math.max(mWidth, mHeight);
+        int textLineWidth = 10;
+        int textPadding = textLineWidth + 6;
 
-        canvas.drawLine(0, mHeight - max, 10, mHeight - max, mPaint);
-        canvas.drawLine(0, mHeight - max / 4, 10, mHeight - max / 4, mPaint);
-        canvas.drawLine(0, mHeight - max / 2, 10, mHeight - max / 2, mPaint);
-        canvas.drawLine(0, mHeight - max / 4 * 3, 10, mHeight - max / 4 * 3, mPaint);
+        canvas.drawLine(0, 0 , textLineWidth, 0, mPaint);
+        canvas.drawLine(0, mHeight / 4 * 3, textLineWidth, mHeight / 4 * 3, mPaint);
+        canvas.drawLine(0, mHeight / 2, textLineWidth, mHeight / 2, mPaint);
+        canvas.drawLine(0, mHeight / 4, textLineWidth, mHeight / 4, mPaint);
 
-        canvas.drawLine(max, mHeight, max, mHeight - 10, mPaint);
-        canvas.drawLine(max / 4, mHeight, max / 4, mHeight - 10, mPaint);
-        canvas.drawLine(max / 2, mHeight, max / 2, mHeight - 10, mPaint);
-        canvas.drawLine(max / 4 * 3, mHeight, max / 4 * 3, mHeight - 10, mPaint);
+
+        canvas.drawLine(mWidth, mHeight, mWidth, mHeight - textLineWidth, mPaint);
+        canvas.drawLine(mWidth / 4, mHeight, mWidth / 4, mHeight - textLineWidth, mPaint);
+        canvas.drawLine(mWidth / 2, mHeight, mWidth / 2, mHeight - textLineWidth, mPaint);
+        canvas.drawLine(mWidth / 4 * 3, mHeight, mWidth / 4 * 3, mHeight - textLineWidth, mPaint);
 
         mPaint.setTextSize(24);
-
         mPaint.setStrokeWidth(1);
-        canvas.drawText("0.25", 16, mHeight - max / 4 + 8, mPaint);
-        canvas.drawText("0.5", 16, mHeight - max / 2 + 8, mPaint);
-        canvas.drawText("0.75", 16, mHeight - max / 4 * 3 + 8, mPaint);
-        canvas.drawText("1.0", 16, mHeight - max + 24, mPaint);
 
-        canvas.drawText("0.25", max / 4 - 14, mHeight - 16, mPaint);
-        canvas.drawText("0.5", max / 2 - 14, mHeight - 16, mPaint);
-        canvas.drawText("0.75", max / 4 * 3 - 14, mHeight - 16, mPaint);
-        canvas.drawText("1.0", max - 14, mHeight - 16, mPaint);
+        String text = "0.25";
+        mPaint.getTextBounds(text, 0, text.length(), mTextBounds);
+        canvas.drawText(text, textPadding, mHeight / 4 * 3 + mTextBounds.height() / 2, mPaint);
+        canvas.drawText(text, mWidth / 4 - mTextBounds.width() / 2, mHeight - textPadding, mPaint);
+
+        text = "0.5";
+        mPaint.getTextBounds(text, 0, text.length(), mTextBounds);
+        canvas.drawText(text, textPadding, mHeight / 2 + mTextBounds.height() / 2, mPaint);
+        canvas.drawText(text, mWidth / 2 - mTextBounds.width() / 2, mHeight - textPadding, mPaint);
+
+        text = "0.75";
+        mPaint.getTextBounds(text, 0, text.length(), mTextBounds);
+        canvas.drawText(text, textPadding, mHeight / 4 + mTextBounds.height() / 2, mPaint);
+        canvas.drawText(text, mWidth / 4 * 3 - mTextBounds.width() / 2, mHeight - textPadding, mPaint);
+
+        text = "1.0";
+        mPaint.getTextBounds(text, 0, text.length(), mTextBounds);
+        canvas.drawText(text, textPadding, mTextBounds.height(), mPaint);
+        canvas.drawText(text, mWidth - mTextBounds.width() - 3, mHeight - textPadding, mPaint);
 
         for (LabeledPoint p : mPoints) {
             mPaint.setColor(p.getColorClass().getColor());
-            canvas.drawCircle((float) p.getX1() * max, (float) (1 - p.getX2()) * max, CIRCLE_RADIUS, mPaint);
+            canvas.drawCircle((float) p.getX1() * mWidth, (float) (1 - p.getX2()) * mHeight, CIRCLE_RADIUS, mPaint);
+        }
+
+        Line lineText = mLine;
+        if (lineText == null && mLineBuilder != null) {
+            lineText = mLineBuilder.build();
+        }
+
+        if (lineText != null) {
+            mPaint.setColor(Color.WHITE);
+            text = "y = " + Math.round(lineText.getIncrease() * 100) / 100D + " * x + " + Math.round(lineText.getOffset() * 100) / 100D;
+            mPaint.getTextBounds(text, 0, text.length(), mTextBounds);
+            canvas.drawText(text, mWidth - textPadding - mTextBounds.width(), textPadding + mTextBounds.height(), mPaint);
         }
 
         mPaint.setStrokeWidth(strokeWidth);
@@ -119,11 +155,11 @@ public class CartesianCoordinateSystem extends View {
 
         if (mLine != null) {
             mPaint.setColor(Color.WHITE);
-            canvas.drawLine(0, (float) (1 - mLine.getY(0)) * max, max, (float) (1 - mLine.getY(1)) * max, mPaint);
+            canvas.drawLine(0, (float) (1 - mLine.getY(0)) * mHeight, mWidth, (float) (1 - mLine.getY(1)) * mHeight, mPaint);
 
         } else if (mLineBuilder != null) {
             mPaint.setColor(Color.WHITE);
-            canvas.drawLine((float) mLineBuilder.getStartX() * max, (float) (1 - mLineBuilder.getStartY()) * max, (float) mLineBuilder.getEndX() * max, (float) (1 - mLineBuilder.getEndY()) * max, mPaint);
+            canvas.drawLine(mLineBuilder.getStartX() * mWidth, (1 - mLineBuilder.getStartY()) * mHeight, mLineBuilder.getEndX() * mWidth, (1 - mLineBuilder.getEndY()) * mHeight, mPaint);
         }
     }
 
@@ -131,20 +167,21 @@ public class CartesianCoordinateSystem extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        float max = Math.max(mWidth, mHeight);
-
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 if (MenuState.STATE_LINE.equals(mMenuState)) {
+                    if (mObjectAnimator != null) {
+                        mObjectAnimator.cancel();
+                    }
                     mLine = null;
-                    mLineBuilder = new Line.Builder(event.getX() / max, 1 - event.getY() / max, event.getX() / max, 1 - event.getY() / max);
+                    mLineBuilder = new Line.Builder(event.getX() / mWidth, 1 - event.getY() / mHeight, event.getX() / mWidth, 1 - event.getY() / mHeight);
 
                 } else {
                     LabeledPoint onClickPoint = getPointOnClick(event.getX(), event.getY());
                     if (onClickPoint != null) {
                         mPoints.remove(onClickPoint);
                     } else {
-                        mPendingPoint = new LabeledPoint(event.getX() / max, 1 - event.getY() / max, mMenuState.getColorClass());
+                        mPendingPoint = new LabeledPoint(event.getX() / mWidth, 1 - event.getY() / mHeight, mMenuState.getColorClass());
                         mPoints.add(mPendingPoint);
                     }
                 }
@@ -153,11 +190,11 @@ public class CartesianCoordinateSystem extends View {
 
             case MotionEvent.ACTION_MOVE:
                 if (MenuState.STATE_LINE.equals(mMenuState) && mLineBuilder != null) {
-                    mLineBuilder.updateEndPoint(event.getX() / max, 1 - event.getY() / max);
+                    mLineBuilder.updateEndPoint(event.getX() / mWidth, 1 - event.getY() / mHeight);
 
                 } else if (mPendingPoint != null) {
-                    mPendingPoint.setX1(event.getX() / max);
-                    mPendingPoint.setX2(1 - event.getY() / max);
+                    mPendingPoint.setX1(event.getX() / mWidth);
+                    mPendingPoint.setX2(1 - event.getY() / mHeight);
                 }
                 invalidate();
                 return true;
@@ -165,14 +202,14 @@ public class CartesianCoordinateSystem extends View {
             case MotionEvent.ACTION_UP:
                 if (MenuState.STATE_LINE.equals(mMenuState) && mLineBuilder != null) {
 
-                    if (mLineBuilder.getLength() < 20 / max) {
+                    if (mLineBuilder.getLength() < 1 / 20D) {
                         mLine = null;
                         mLineBuilder = null;
 
                     } else {
                         mLineBuilder.buildAnimate(this);
-                        invalidate();
                     }
+                    invalidate();
                 }
                 mPendingPoint = null;
                 return true;
@@ -181,14 +218,60 @@ public class CartesianCoordinateSystem extends View {
         return super.onTouchEvent(event);
     }
 
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("instanceState", super.onSaveInstanceState());
+
+        Gson gson = new Gson();
+        if (!mPoints.isEmpty()) {
+            bundle.putString("points", gson.toJson(mPoints));
+        }
+        if (mLine != null) {
+            bundle.putString("line", gson.toJson(mLine));
+        }
+
+        return bundle;
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+
+        if (state instanceof Bundle) {
+            Bundle bundle = (Bundle) state;
+            Gson gson = new Gson();
+
+            String points = bundle.getString("points", null);
+            if (points != null) {
+                mPoints = gson.fromJson(points, new TypeToken<ArrayList<LabeledPoint>>() {
+                }.getType());
+            }
+            String line = bundle.getString("line", null);
+            if (line != null) {
+                mLine = gson.fromJson(line, Line.class);
+            }
+
+            super.onRestoreInstanceState(bundle.getParcelable("instanceState"));
+            return;
+        }
+
+        super.onRestoreInstanceState(state);
+    }
+
     public void setMenuState(MenuState menuState) {
         mMenuState = menuState;
     }
 
     public void setLine(Line line) {
-        mLine = line;
-        mLineBuilder = null;
-        invalidate();
+        if (mLine != null) {
+            animateLineToPosition(mLine, line);
+            mLine = null;
+
+        } else {
+            mLine = line;
+            mLineBuilder = null;
+            invalidate();
+        }
     }
 
     public Line getLine() {
@@ -215,14 +298,48 @@ public class CartesianCoordinateSystem extends View {
     }
 
     private LabeledPoint getPointOnClick(float x, float y) {
-        double max = Math.max(mWidth, mHeight);
-
         for (LabeledPoint p : mPoints) {
-            if (Math.pow(x - p.getX1() * max, 2) + Math.pow(y - (1 - p.getX2()) * max, 2) <= Math.pow(CIRCLE_RADIUS * 2, 2)) {
+            if (Math.pow(x - p.getX1() * mWidth, 2) + Math.pow(y - (1 - p.getX2()) * mHeight, 2) <= Math.pow(CIRCLE_RADIUS * 2, 2)) {
                 return p;
             }
         }
 
         return null;
+    }
+
+    private void animateLineToPosition(Line start, Line end) {
+        mLineBuilder = new Line.Builder(0, (float) start.getY(0), 1, (float) start.getY(1));
+
+        PropertyValuesHolder holderStartY = PropertyValuesHolder.ofFloat("startY", mLineBuilder.getStartY(), (float) end.getY(0));
+        PropertyValuesHolder holderEndY = PropertyValuesHolder.ofFloat("endY", mLineBuilder.getEndY(), (float) end.getY(1));
+
+        L.d("Values ", mLineBuilder.getStartY(), " ", end.getY(0), " ", mLineBuilder.getEndY(), " ", end.getY(1));
+
+        mObjectAnimator = ObjectAnimator.ofPropertyValuesHolder(mLineBuilder, /*holderStartX, holderEndX,*/ holderStartY, holderEndY);
+        mObjectAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        mObjectAnimator.setDuration(1000l);
+        mObjectAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                invalidate();
+            }
+        });
+        mObjectAnimator.addListener(new AnimatorListenerAdapter() {
+            private boolean mCancelled = false;
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                mCancelled = true;
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (!mCancelled && mLineBuilder != null) {
+                    setLine(mLineBuilder.build());
+                }
+                mObjectAnimator = null;
+            }
+        });
+        mObjectAnimator.start();
     }
 }

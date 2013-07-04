@@ -1,6 +1,6 @@
 package net.vrallev.android.svm.gradient;
 
-import net.vrallev.android.svm.Optimizer;
+import net.vrallev.android.svm.AbstractOptimizer;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
 import net.vrallev.android.svm.model.NormalVector;
@@ -10,28 +10,31 @@ import java.util.List;
 /**
  * @author Ralf Wondratschek
  */
-public class GradientDescent implements Optimizer {
+public class GradientDescent extends AbstractOptimizer {
 
-    private Line mLine;
-    private LabeledPoint[] mPoints;
+    private static final int DEFAULT_ITERATIONS = 10000;
     private static final double STOP_DIFFERENCE = 0.00001;
 
     public GradientDescent(Line line, List<LabeledPoint> points) {
-        mLine = line.clone();
-        mPoints = new LabeledPoint[points.size()];
-        for (int i = 0; i < mPoints.length; i++) {
-            mPoints[i] = points.get(i).clone();
-        }
+        this(line, points, DEFAULT_ITERATIONS);
+    }
+
+    public GradientDescent(Line line, List<LabeledPoint> points, int iterations) {
+        super(line, points, iterations);
     }
 
     @Override
-    public Line optimize(int iterations) {
-        GradientDescentArgument[] arguments = new GradientDescentArgument[iterations + 1];
+    public Line optimize() {
+        GradientDescentArgument[] arguments = new GradientDescentArgument[mIterations + 1];
         arguments[0] = new GradientDescentArgument(mLine.getNormalVector().clone(), mLine.getOffset());
 
         final double stepSize = 1D / getLipschitzConstant(mPoints);
 
         for (int i = 1; i < arguments.length; i++) {
+            if (mCancelled) {
+                return null;
+            }
+
             GradientDescentArgument derivation = calcDerivation(arguments[i - 1]);
 
             arguments[i] = arguments[i - 1].next(stepSize, derivation);

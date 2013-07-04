@@ -9,6 +9,8 @@ public interface Optimizer {
 
     public static final double C = 100.0;
 
-    public Line optimize(int iterations);
+    public Line optimize();
+
+    public void cancel();
 
 }

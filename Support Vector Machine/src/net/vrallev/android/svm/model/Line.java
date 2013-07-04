@@ -70,7 +70,11 @@ public class Line implements Cloneable {
         }
 
         public double getLength() {
-            return Math.sqrt(Math.pow(mStartX - mEndX, 2) + Math.pow(mEndX - mEndY, 2));
+            if (mStartX == mEndX && mStartY == mEndY) {
+                return 0;
+            }
+
+            return Math.sqrt(Math.pow(mStartX - mEndX, 2) + Math.pow(mStartY - mEndY, 2));
         }
 
         public float getStartX() {

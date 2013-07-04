@@ -1,6 +1,6 @@
 package net.vrallev.android.svm.gradient;
 
-import net.vrallev.android.svm.Optimizer;
+import net.vrallev.android.svm.AbstractOptimizer;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
 import net.vrallev.android.svm.model.NormalVector;
@@ -10,35 +10,37 @@ import java.util.List;
 /**
  * @author Ralf Wondratschek
  */
-public class SubGradientDescent implements Optimizer {
+public class SubGradientDescent extends AbstractOptimizer {
 
+    private static final int DEFAULT_ITERATIONS = 500000;
     private static final double DEFAULT_STEP_PARAMETER = 100D;
     private static final double STOP_DIFFERENCE = 0.001;
 
-    private Line mLine;
-    private LabeledPoint[] mPoints;
     private double mStepParameter;
 
     public SubGradientDescent(Line line, List<LabeledPoint> points) {
-        this(line, points, DEFAULT_STEP_PARAMETER);
+        this(line, points, DEFAULT_ITERATIONS);
     }
 
-    public SubGradientDescent(Line line, List<LabeledPoint> points, double stepParameter) {
-        mLine = line.clone();
-        mPoints = new LabeledPoint[points.size()];
-        for (int i = 0; i < mPoints.length; i++) {
-            mPoints[i] = points.get(i).clone();
-        }
+    public SubGradientDescent(Line line, List<LabeledPoint> points, int iterations) {
+        this(line, points, iterations, DEFAULT_STEP_PARAMETER);
+    }
 
+    public SubGradientDescent(Line line, List<LabeledPoint> points, int iterations, double stepParameter) {
+        super(line, points, iterations);
         mStepParameter = stepParameter;
     }
 
     @Override
-    public Line optimize(int iterations) {
-        GradientDescentArgument[] arguments = new GradientDescentArgument[iterations + 1];
+    public Line optimize() {
+        GradientDescentArgument[] arguments = new GradientDescentArgument[mIterations + 1];
         arguments[0] = new GradientDescentArgument(mLine.getNormalVector().clone(), mLine.getOffset());
 
         for (int i = 1; i < arguments.length; i++) {
+            if (mCancelled) {
+                return null;
+            }
+
             GradientDescentArgument subGradient = getSubGradient(arguments[i - 1], 1D / 2D);
 
             double stepSize = getStepSize(i, mStepParameter);
