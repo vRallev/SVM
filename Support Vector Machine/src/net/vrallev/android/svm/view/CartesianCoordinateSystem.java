@@ -15,8 +15,10 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import de.greenrobot.event.EventBus;
 import net.vrallev.android.base.util.L;
 import net.vrallev.android.svm.MenuState;
+import net.vrallev.android.svm.gradient.DirtyLineEvent;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
 
@@ -175,6 +177,7 @@ public class CartesianCoordinateSystem extends View {
                     }
                     mLine = null;
                     mLineBuilder = new Line.Builder(event.getX() / mWidth, 1 - event.getY() / mHeight, event.getX() / mWidth, 1 - event.getY() / mHeight);
+                    EventBus.getDefault().postSticky(new DirtyLineEvent());
 
                 } else {
                     LabeledPoint onClickPoint = getPointOnClick(event.getX(), event.getY());
@@ -184,6 +187,7 @@ public class CartesianCoordinateSystem extends View {
                         mPendingPoint = new LabeledPoint(event.getX() / mWidth, 1 - event.getY() / mHeight, mMenuState.getColorClass());
                         mPoints.add(mPendingPoint);
                     }
+                    EventBus.getDefault().postSticky(new DirtyLineEvent());
                 }
                 invalidate();
                 return true;
@@ -210,6 +214,7 @@ public class CartesianCoordinateSystem extends View {
                         mLineBuilder.buildAnimate(this);
                     }
                     invalidate();
+                    EventBus.getDefault().postSticky(new DirtyLineEvent());
                 }
                 mPendingPoint = null;
                 return true;
@@ -272,6 +277,7 @@ public class CartesianCoordinateSystem extends View {
             mLineBuilder = null;
             invalidate();
         }
+        EventBus.getDefault().postSticky(new DirtyLineEvent());
     }
 
     public Line getLine() {
@@ -290,11 +296,21 @@ public class CartesianCoordinateSystem extends View {
     public void addPoint(LabeledPoint point) {
         mPoints.add(point);
         invalidate();
+        EventBus.getDefault().postSticky(new DirtyLineEvent());
     }
 
     public void clearPoints() {
         mPoints.clear();
         invalidate();
+        EventBus.getDefault().postSticky(new DirtyLineEvent());
+    }
+
+    public State getState() {
+        Line l = mLine;
+        if (l == null && mLineBuilder != null) {
+            l = mLineBuilder.build();
+        }
+        return new State(mPoints, l);
     }
 
     private LabeledPoint getPointOnClick(float x, float y) {
@@ -341,5 +357,61 @@ public class CartesianCoordinateSystem extends View {
             }
         });
         mObjectAnimator.start();
+    }
+
+    public static class State {
+
+        private List<LabeledPoint> mPoints;
+        private Line mLine;
+
+        public State(List<LabeledPoint> points, Line line) {
+            mPoints = new ArrayList<LabeledPoint>(points.size());
+            for (LabeledPoint p : points) {
+                mPoints.add(p.clone());
+            }
+
+            if (line != null) {
+                mLine = line.clone();
+            }
+        }
+
+        public Line getLine() {
+            return mLine;
+        }
+
+        public void setLine(Line line) {
+            mLine = line;
+        }
+
+        public List<LabeledPoint> getPoints() {
+            return mPoints;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof State) {
+                State state = (State) o;
+                for (LabeledPoint p : mPoints) {
+                    if (!state.mPoints.contains(p)) {
+                        return false;
+                    }
+                }
+                for (LabeledPoint p : state.mPoints) {
+                    if (!mPoints.contains(p)) {
+                        return false;
+                    }
+                }
+                if (mLine == null && state.mLine == null) {
+                    return true;
+                }
+                if (mLine != null && state.mLine != null) {
+                    return state.mLine.equals(mLine);
+                }
+
+                return false;
+            }
+
+            return super.equals(o);
+        }
     }
 }

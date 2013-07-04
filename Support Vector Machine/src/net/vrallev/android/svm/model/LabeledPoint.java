@@ -40,6 +40,16 @@ public class LabeledPoint implements Cloneable {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o instanceof LabeledPoint) {
+            LabeledPoint point = (LabeledPoint) o;
+            return point.mColorClass.equals(mColorClass) && point.mX1 == mX1 && point.mX2 == mX2;
+        }
+
+        return super.equals(o);
+    }
+
+    @Override
     public LabeledPoint clone() {
         return new LabeledPoint(mX1, mX2, mColorClass);
     }

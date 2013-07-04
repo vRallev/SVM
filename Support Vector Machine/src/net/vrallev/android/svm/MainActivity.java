@@ -8,6 +8,7 @@ import com.manuelpeinado.refreshactionitem.ProgressIndicatorType;
 import com.manuelpeinado.refreshactionitem.RefreshActionItem;
 import de.greenrobot.event.EventBus;
 import net.vrallev.android.base.BaseActivity;
+import net.vrallev.android.svm.gradient.DirtyLineEvent;
 import net.vrallev.android.svm.gradient.GradientDescent;
 import net.vrallev.android.svm.model.ColorClass;
 import net.vrallev.android.svm.model.LabeledPoint;
@@ -22,6 +23,7 @@ import net.vrallev.android.svm.view.CartesianCoordinateSystem;
 public class MainActivity extends BaseActivity {
 
     private CartesianCoordinateSystem mCartesianCoordinateSystem;
+    private CartesianCoordinateSystem.State mCoordinateSystemState;
 
     private MenuState mMenuState;
 
@@ -75,12 +77,16 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onRefreshButtonClick(RefreshActionItem sender) {
 //                mRefreshActionItem.showProgress(true);
-                mRefreshActionItem.hideBadge();
+//                mRefreshActionItem.hideBadge();
             }
         });
 
         if (OptimizerCalculator.getInstance().isCalculating()) {
             mRefreshActionItem.showProgress(true);
+        }
+
+        if (mCoordinateSystemState == null) {
+            mCoordinateSystemState = mCartesianCoordinateSystem.getState();
         }
 
         return true;
@@ -115,10 +121,30 @@ public class MainActivity extends BaseActivity {
     }
 
     public void onEventMainThread(OptimizerCalculator.ResultEvent event) {
+//        mCoordinateSystemState = mCartesianCoordinateSystem.getState();
+//        mCoordinateSystemState.setLine(event.getLine());
+        mCoordinateSystemState = new CartesianCoordinateSystem.State(mCartesianCoordinateSystem.getPoints(), event.getLine());
+
         mCartesianCoordinateSystem.setLine(event.getLine());
+        mRefreshActionItem.hideBadge();
         mRefreshActionItem.showProgress(false);
 
+
         EventBus.getDefault().removeStickyEvent(event);
+        EventBus.getDefault().removeStickyEvent(DirtyLineEvent.class);
+    }
+
+    public void onEventMainThread(DirtyLineEvent event) {
+        CartesianCoordinateSystem.State state = mCartesianCoordinateSystem.getState();
+        if (!state.equals(mCoordinateSystemState)) {
+            if (!mRefreshActionItem.isBadgeVisible()) {
+                mRefreshActionItem.showBadge();
+            }
+        } else {
+            if (mRefreshActionItem.isBadgeVisible()) {
+                mRefreshActionItem.hideBadge();
+            }
+        }
     }
 
     private void test() {

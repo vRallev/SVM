@@ -45,6 +45,19 @@ public class Line implements Cloneable {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o instanceof Line) {
+            Line line = (Line) o;
+            int offset1 = (int) (line.mOffset * 1000);
+            int offset2 = (int) (mOffset * 1000);
+
+            return line.mNormalVector.equals(mNormalVector) && offset1 == offset2;
+        }
+
+        return super.equals(o);
+    }
+
+    @Override
     public Line clone() {
         return new Line(new NormalVector(mNormalVector.getW1(), mNormalVector.getW2()), mOffset);
     }

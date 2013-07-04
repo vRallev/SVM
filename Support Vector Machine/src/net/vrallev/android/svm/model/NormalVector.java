@@ -30,6 +30,17 @@ public class NormalVector implements Cloneable {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o instanceof NormalVector) {
+            NormalVector vector = (NormalVector) o;
+            double res = (vector.mW2 / vector.mW1) / (mW2 / mW1);
+            return res < 1.0001 && res > 0.999;
+        }
+
+        return super.equals(o);
+    }
+
+    @Override
     public NormalVector clone() {
         return new NormalVector(mW1, mW2);
     }
