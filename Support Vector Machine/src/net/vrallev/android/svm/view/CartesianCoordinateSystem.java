@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import de.greenrobot.event.EventBus;
 import net.vrallev.android.base.util.L;
 import net.vrallev.android.svm.MenuState;
+import net.vrallev.android.svm.OptimizerCalculator;
 import net.vrallev.android.svm.gradient.DirtyLineEvent;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
@@ -51,6 +52,8 @@ public class CartesianCoordinateSystem extends View {
     private MenuState mMenuState;
 
     private ObjectAnimator mObjectAnimator;
+
+    private boolean mIgnoreTouch;
 
     @SuppressWarnings("UnusedDeclaration")
     public CartesianCoordinateSystem(Context context) {
@@ -99,7 +102,7 @@ public class CartesianCoordinateSystem extends View {
         int textLineWidth = 10;
         int textPadding = textLineWidth + 6;
 
-        canvas.drawLine(0, 0 , textLineWidth, 0, mPaint);
+        canvas.drawLine(0, 0, textLineWidth, 0, mPaint);
         canvas.drawLine(0, mHeight / 4 * 3, textLineWidth, mHeight / 4 * 3, mPaint);
         canvas.drawLine(0, mHeight / 2, textLineWidth, mHeight / 2, mPaint);
         canvas.drawLine(0, mHeight / 4, textLineWidth, mHeight / 4, mPaint);
@@ -167,6 +170,14 @@ public class CartesianCoordinateSystem extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            mIgnoreTouch = OptimizerCalculator.getInstance().isCalculating();
+        }
+
+        if (mIgnoreTouch) {
+            return true;
+        }
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 if (MenuState.STATE_LINE.equals(mMenuState)) {
