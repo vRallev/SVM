@@ -14,7 +14,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import de.greenrobot.event.EventBus;
 import net.vrallev.android.base.util.L;
 import net.vrallev.android.svm.MenuState;
@@ -23,6 +22,7 @@ import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,9 +45,7 @@ public class CartesianCoordinateSystem extends View {
     private int mHeight;
     private int mWidth;
 
-    private List<LabeledPoint> mPoints;
-
-    private Line mLine;
+    private State mState;
     private Line.Builder mLineBuilder;
 
     private MenuState mMenuState;
@@ -80,7 +78,7 @@ public class CartesianCoordinateSystem extends View {
 
         mPaint.setStrokeWidth(STROKE_WIDTH);
 
-        mPoints = new ArrayList<LabeledPoint>();
+        mState = new State();
 
         mTextBounds = new Rect();
     }
@@ -135,12 +133,12 @@ public class CartesianCoordinateSystem extends View {
         canvas.drawText(text, textPadding, mTextBounds.height(), mPaint);
         canvas.drawText(text, mWidth - mTextBounds.width() - 3, mHeight - textPadding, mPaint);
 
-        for (LabeledPoint p : mPoints) {
+        for (LabeledPoint p : mState.mPoints) {
             mPaint.setColor(p.getColorClass().getColor());
             canvas.drawCircle((float) p.getX1() * mWidth, (float) (1 - p.getX2()) * mHeight, CIRCLE_RADIUS, mPaint);
         }
 
-        Line lineText = mLine;
+        Line lineText = mState.mLine;
         if (lineText == null && mLineBuilder != null) {
             lineText = mLineBuilder.build();
         }
@@ -155,13 +153,13 @@ public class CartesianCoordinateSystem extends View {
         mPaint.setStrokeWidth(strokeWidth);
         mPaint.setColor(Color.WHITE);
 
-        if (mLine != null) {
-            mPaint.setColor(Color.WHITE);
-            canvas.drawLine(0, (float) (1 - mLine.getY(0)) * mHeight, mWidth, (float) (1 - mLine.getY(1)) * mHeight, mPaint);
-
-        } else if (mLineBuilder != null) {
+        if (mLineBuilder != null) {
             mPaint.setColor(Color.WHITE);
             canvas.drawLine(mLineBuilder.getStartX() * mWidth, (1 - mLineBuilder.getStartY()) * mHeight, mLineBuilder.getEndX() * mWidth, (1 - mLineBuilder.getEndY()) * mHeight, mPaint);
+
+        } else if (mState.mLine != null) {
+            mPaint.setColor(Color.WHITE);
+            canvas.drawLine(0, (float) (1 - mState.mLine.getY(0)) * mHeight, mWidth, (float) (1 - mState.mLine.getY(1)) * mHeight, mPaint);
         }
     }
 
@@ -175,21 +173,19 @@ public class CartesianCoordinateSystem extends View {
                     if (mObjectAnimator != null) {
                         mObjectAnimator.cancel();
                     }
-                    mLine = null;
+                    mState.mLine = null;
                     mLineBuilder = new Line.Builder(event.getX() / mWidth, 1 - event.getY() / mHeight, event.getX() / mWidth, 1 - event.getY() / mHeight);
-                    EventBus.getDefault().postSticky(new DirtyLineEvent());
+                    invalidate();
 
                 } else {
                     LabeledPoint onClickPoint = getPointOnClick(event.getX(), event.getY());
                     if (onClickPoint != null) {
-                        mPoints.remove(onClickPoint);
+                        mState.removePoint(onClickPoint);
                     } else {
-                        mPendingPoint = new LabeledPoint(event.getX() / mWidth, 1 - event.getY() / mHeight, mMenuState.getColorClass());
-                        mPoints.add(mPendingPoint);
+                        mPendingPoint = LabeledPoint.getInstance(event.getX() / mWidth, 1 - event.getY() / mHeight, mMenuState.getColorClass());
+                        mState.addPoint(mPendingPoint);
                     }
-                    EventBus.getDefault().postSticky(new DirtyLineEvent());
                 }
-                invalidate();
                 return true;
 
             case MotionEvent.ACTION_MOVE:
@@ -207,15 +203,15 @@ public class CartesianCoordinateSystem extends View {
                 if (MenuState.STATE_LINE.equals(mMenuState) && mLineBuilder != null) {
 
                     if (mLineBuilder.getLength() < 1 / 20D) {
-                        mLine = null;
+                        mState.setLine(null);
                         mLineBuilder = null;
 
                     } else {
                         mLineBuilder.buildAnimate(this);
                     }
                     invalidate();
-                    EventBus.getDefault().postSticky(new DirtyLineEvent());
                 }
+
                 mPendingPoint = null;
                 return true;
         }
@@ -227,14 +223,7 @@ public class CartesianCoordinateSystem extends View {
     protected Parcelable onSaveInstanceState() {
         Bundle bundle = new Bundle();
         bundle.putParcelable("instanceState", super.onSaveInstanceState());
-
-        Gson gson = new Gson();
-        if (!mPoints.isEmpty()) {
-            bundle.putString("points", gson.toJson(mPoints));
-        }
-        if (mLine != null) {
-            bundle.putString("line", gson.toJson(mLine));
-        }
+        bundle.putString("state", new Gson().toJson(mState));
 
         return bundle;
     }
@@ -244,16 +233,11 @@ public class CartesianCoordinateSystem extends View {
 
         if (state instanceof Bundle) {
             Bundle bundle = (Bundle) state;
-            Gson gson = new Gson();
-
-            String points = bundle.getString("points", null);
-            if (points != null) {
-                mPoints = gson.fromJson(points, new TypeToken<ArrayList<LabeledPoint>>() {
-                }.getType());
-            }
-            String line = bundle.getString("line", null);
-            if (line != null) {
-                mLine = gson.fromJson(line, Line.class);
+            String json = bundle.getString("state", null);
+            if (json != null) {
+                State state1 = new Gson().fromJson(json, State.class);
+                mState = new State(state1.getPoints(), state1.getLine());
+                state1.releasePoints();
             }
 
             super.onRestoreInstanceState(bundle.getParcelable("instanceState"));
@@ -267,22 +251,20 @@ public class CartesianCoordinateSystem extends View {
         mMenuState = menuState;
     }
 
-    public void setLine(Line line) {
-        if (mLine != null) {
-            animateLineToPosition(mLine, line);
-            mLine = null;
+    public void setLine(Line line, boolean animate) {
+        if (animate && mState.mLine != null) {
+            animateLineToPosition(mState.mLine, line);
+            mState.mLine = line;
 
         } else {
-            mLine = line;
+            mState.setLine(line);
             mLineBuilder = null;
-            invalidate();
         }
-        EventBus.getDefault().postSticky(new DirtyLineEvent());
     }
 
     public Line getLine() {
-        if (mLine != null) {
-            return mLine;
+        if (mState.mLine != null) {
+            return mState.mLine;
         } else if (mLineBuilder != null) {
             return mLineBuilder.build();
         }
@@ -290,31 +272,27 @@ public class CartesianCoordinateSystem extends View {
     }
 
     public List<LabeledPoint> getPoints() {
-        return mPoints;
+        return mState.mPoints;
     }
 
     public void addPoint(LabeledPoint point) {
-        mPoints.add(point);
-        invalidate();
-        EventBus.getDefault().postSticky(new DirtyLineEvent());
+        mState.addPoint(point);
     }
 
     public void clearPoints() {
-        mPoints.clear();
-        invalidate();
-        EventBus.getDefault().postSticky(new DirtyLineEvent());
+        mState.clearPoints();
+    }
+
+    public void removePoint(LabeledPoint point) {
+        mState.removePoint(point);
     }
 
     public State getState() {
-        Line l = mLine;
-        if (l == null && mLineBuilder != null) {
-            l = mLineBuilder.build();
-        }
-        return new State(mPoints, l);
+        return new State(mState.mPoints, mState.mLine);
     }
 
     private LabeledPoint getPointOnClick(float x, float y) {
-        for (LabeledPoint p : mPoints) {
+        for (LabeledPoint p : mState.mPoints) {
             if (Math.pow(x - p.getX1() * mWidth, 2) + Math.pow(y - (1 - p.getX2()) * mHeight, 2) <= Math.pow(CIRCLE_RADIUS * 2, 2)) {
                 return p;
             }
@@ -351,7 +329,7 @@ public class CartesianCoordinateSystem extends View {
             @Override
             public void onAnimationEnd(Animator animation) {
                 if (!mCancelled && mLineBuilder != null) {
-                    setLine(mLineBuilder.build());
+                    setLine(mLineBuilder.build(), false);
                 }
                 mObjectAnimator = null;
             }
@@ -359,12 +337,16 @@ public class CartesianCoordinateSystem extends View {
         mObjectAnimator.start();
     }
 
-    public static class State {
+    public class State {
 
         private List<LabeledPoint> mPoints;
         private Line mLine;
 
-        public State(List<LabeledPoint> points, Line line) {
+        private State() {
+            this(Collections.<LabeledPoint>emptyList(), null);
+        }
+
+        private State(List<LabeledPoint> points, Line line) {
             mPoints = new ArrayList<LabeledPoint>(points.size());
             for (LabeledPoint p : points) {
                 mPoints.add(p.clone());
@@ -379,27 +361,42 @@ public class CartesianCoordinateSystem extends View {
             return mLine;
         }
 
-        public void setLine(Line line) {
+        private void setLine(Line line) {
             mLine = line;
+            invalidate();
+            EventBus.getDefault().postSticky(DirtyLineEvent.INSTANCE);
         }
 
         public List<LabeledPoint> getPoints() {
             return mPoints;
         }
 
+        private void addPoint(LabeledPoint point) {
+            mPoints.add(point);
+            invalidate();
+            EventBus.getDefault().postSticky(DirtyLineEvent.INSTANCE);
+        }
+
+        private void removePoint(LabeledPoint point) {
+            mPoints.remove(point);
+            point.release();
+            invalidate();
+            EventBus.getDefault().postSticky(DirtyLineEvent.INSTANCE);
+        }
+
+        private void clearPoints() {
+            releasePoints();
+            mPoints.clear();
+            invalidate();
+            EventBus.getDefault().postSticky(DirtyLineEvent.INSTANCE);
+        }
+
         @Override
         public boolean equals(Object o) {
             if (o instanceof State) {
                 State state = (State) o;
-                for (LabeledPoint p : mPoints) {
-                    if (!state.mPoints.contains(p)) {
-                        return false;
-                    }
-                }
-                for (LabeledPoint p : state.mPoints) {
-                    if (!mPoints.contains(p)) {
-                        return false;
-                    }
+                if (!LabeledPoint.listEqual(state.mPoints, mPoints)) {
+                    return false;
                 }
                 if (mLine == null && state.mLine == null) {
                     return true;
@@ -412,6 +409,12 @@ public class CartesianCoordinateSystem extends View {
             }
 
             return super.equals(o);
+        }
+
+        public void releasePoints() {
+            for (LabeledPoint p : mPoints) {
+                p.release();
+            }
         }
     }
 }

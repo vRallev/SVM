@@ -32,7 +32,7 @@ public class SubGradientDescent extends AbstractOptimizer {
     }
 
     @Override
-    public Line optimize() {
+    public Line innerOptimize() {
         GradientDescentArgument[] arguments = new GradientDescentArgument[mIterations + 1];
         arguments[0] = new GradientDescentArgument(mLine.getNormalVector().clone(), mLine.getOffset());
 

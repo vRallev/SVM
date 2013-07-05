@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Support Vector Machine</string>
+    <string name="app_name">SVM</string>
     <string name="action_settings">Settings</string>
     <string name="color_class">Color Class</string>
     <string name="refresh">Refresh</string>
+    <string name="insert_default">Insert default points</string>
+    <string name="clear_points">Clear points</string>
+
+    <string-array name="action_list">
+        <item>Subgradient Method</item>
+        <item>Gradient Descent</item>
+        <item>Newton\'s Method</item>
+    </string-array>
 
 </resources>

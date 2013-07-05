@@ -151,7 +151,7 @@ public class Line implements Cloneable {
             objectAnimator.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    view.setLine(Builder.this.build());
+                    view.setLine(Builder.this.build(), false);
                 }
             });
             objectAnimator.start();

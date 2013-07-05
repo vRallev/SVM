@@ -28,6 +28,19 @@ public abstract class AbstractOptimizer implements Optimizer {
     }
 
     @Override
+    public final Line optimize() {
+        Line result = innerOptimize();
+
+        for (LabeledPoint p : mPoints) {
+            p.release();
+        }
+
+        return result;
+    }
+
+    protected abstract Line innerOptimize();
+
+    @Override
     public void cancel() {
         mCancelled = true;
     }
