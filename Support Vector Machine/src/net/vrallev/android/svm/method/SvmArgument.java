@@ -6,12 +6,12 @@ import net.vrallev.android.svm.model.NormalVector;
 /**
  * @author Ralf Wondratschek
  */
-public class GradientDescentArgument implements Cloneable {
+public class SvmArgument implements Cloneable {
 
     private NormalVector mNormalVector;
     private double mOffset;
 
-    public GradientDescentArgument(NormalVector normalVector, double offset) {
+    public SvmArgument(NormalVector normalVector, double offset) {
         mNormalVector = normalVector;
         mOffset = offset;
     }
@@ -32,23 +32,23 @@ public class GradientDescentArgument implements Cloneable {
         mNormalVector = normalVector;
     }
 
-    public GradientDescentArgument multipy(double factor) {
-        GradientDescentArgument res = this.clone();
+    public SvmArgument multipy(double factor) {
+        SvmArgument res = this.clone();
         res.getNormalVector().setW1(res.getNormalVector().getW1() * factor);
         res.getNormalVector().setW2(res.getNormalVector().getW2() * factor);
         res.setOffset(res.getOffset() * factor);
         return res;
     }
 
-    public GradientDescentArgument minus(GradientDescentArgument arg) {
-        GradientDescentArgument res = this.clone();
+    public SvmArgument minus(SvmArgument arg) {
+        SvmArgument res = this.clone();
         res.getNormalVector().setW1(res.getNormalVector().getW1() - arg.getNormalVector().getW1());
         res.getNormalVector().setW2(res.getNormalVector().getW2() - arg.getNormalVector().getW2());
         res.setOffset(res.getOffset() - arg.getOffset());
         return res;
     }
 
-    public GradientDescentArgument next(double stepSize, GradientDescentArgument derivation) {
+    public SvmArgument next(double stepSize, SvmArgument derivation) {
         return minus(derivation.multipy(stepSize));
     }
 
@@ -62,7 +62,7 @@ public class GradientDescentArgument implements Cloneable {
     }
 
     @Override
-    public GradientDescentArgument clone() {
-        return new GradientDescentArgument(mNormalVector.clone(), mOffset);
+    public SvmArgument clone() {
+        return new SvmArgument(mNormalVector.clone(), mOffset);
     }
 }

@@ -1,5 +1,6 @@
-package net.vrallev.android.svm;
+package net.vrallev.android.svm.method;
 
+import net.vrallev.android.svm.Optimizer;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
 

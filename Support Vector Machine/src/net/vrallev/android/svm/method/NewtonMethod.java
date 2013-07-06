@@ -1,7 +1,6 @@
 package net.vrallev.android.svm.method;
 
 import android.os.Bundle;
-import net.vrallev.android.svm.AbstractOptimizer;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
 import net.vrallev.android.svm.model.NormalVector;
@@ -37,7 +36,7 @@ public class NewtonMethod extends AbstractOptimizer {
 
     @Override
     protected Line innerOptimize() {
-        GradientDescentArgument argument = new GradientDescentArgument(mLine.getNormalVector(), mLine.getOffset());
+        SvmArgument argument = new SvmArgument(mLine.getNormalVector(), mLine.getOffset());
 
         Bundle derivation = new Bundle();
 
@@ -53,7 +52,7 @@ public class NewtonMethod extends AbstractOptimizer {
             derivation.putDouble(SECOND_DERIVATE_W1B, secondDerivateW1B(argument.getOffset(), C, mPoints, argument.getNormalVector()));
             derivation.putDouble(SECOND_DERIVATE_W2B, secondDerivateW2B(argument.getOffset(), C, mPoints, argument.getNormalVector()));
 
-            GradientDescentArgument newArg = newtonMethod(argument, derivation);
+            SvmArgument newArg = newtonMethod(argument, derivation);
             if (stop(argument, newArg)) {
                 return newArg.toLine();
             }
@@ -110,8 +109,8 @@ public class NewtonMethod extends AbstractOptimizer {
         return res;
     }
 
-    private static GradientDescentArgument newtonMethod(GradientDescentArgument normVecOffset, Bundle derivates) {
-        GradientDescentArgument vecOffs = normVecOffset.clone();
+    private static SvmArgument newtonMethod(SvmArgument normVecOffset, Bundle derivates) {
+        SvmArgument vecOffs = normVecOffset.clone();
 
         double[] firstDerivates = {derivates.getDouble(FIRST_DERIVATE_W1), derivates.getDouble(FIRST_DERIVATE_W2), derivates.getDouble(FIRST_DERIVATE_B)};
         double[] functionProduct = secondDerTimesfirstDer(
@@ -279,7 +278,7 @@ public class NewtonMethod extends AbstractOptimizer {
         return c * sum;
     }
 
-    private boolean stop(GradientDescentArgument before, GradientDescentArgument after) {
+    private boolean stop(SvmArgument before, SvmArgument after) {
         return Math.abs(Math.abs(before.getNormalVector().getW1()) - Math.abs(after.getNormalVector().getW1())) < STOP_DIFFERENCE
                 && Math.abs(Math.abs(before.getNormalVector().getW2()) - Math.abs(after.getNormalVector().getW2())) < STOP_DIFFERENCE
                 && Math.abs(Math.abs(before.getOffset()) - Math.abs(after.getOffset())) < STOP_DIFFERENCE;

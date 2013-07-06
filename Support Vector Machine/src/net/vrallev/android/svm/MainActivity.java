@@ -14,7 +14,7 @@ import com.manuelpeinado.refreshactionitem.ProgressIndicatorType;
 import com.manuelpeinado.refreshactionitem.RefreshActionItem;
 import de.greenrobot.event.EventBus;
 import net.vrallev.android.base.BaseActivity;
-import net.vrallev.android.svm.method.DirtyLineEvent;
+import net.vrallev.android.svm.model.DirtyLineEvent;
 import net.vrallev.android.svm.method.GradientDescent;
 import net.vrallev.android.svm.method.NewtonMethod;
 import net.vrallev.android.svm.method.SubGradientDescent;

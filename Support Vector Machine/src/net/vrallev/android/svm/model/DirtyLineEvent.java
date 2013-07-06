@@ -1,4 +1,4 @@
-package net.vrallev.android.svm.method;
+package net.vrallev.android.svm.model;
 
 /**
  * @author Ralf Wondratschek

@@ -1,6 +1,5 @@
 package net.vrallev.android.svm.method;
 
-import net.vrallev.android.svm.AbstractOptimizer;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
 import net.vrallev.android.svm.model.NormalVector;
@@ -25,8 +24,8 @@ public class GradientDescent extends AbstractOptimizer {
 
     @Override
     public Line innerOptimize() {
-        GradientDescentArgument[] arguments = new GradientDescentArgument[mIterations + 1];
-        arguments[0] = new GradientDescentArgument(mLine.getNormalVector().clone(), mLine.getOffset());
+        SvmArgument[] arguments = new SvmArgument[mIterations + 1];
+        arguments[0] = new SvmArgument(mLine.getNormalVector().clone(), mLine.getOffset());
 
         final double stepSize = 1D / getLipschitzConstant(mPoints);
 
@@ -35,7 +34,7 @@ public class GradientDescent extends AbstractOptimizer {
                 return null;
             }
 
-            GradientDescentArgument derivation = calcDerivation(arguments[i - 1]);
+            SvmArgument derivation = calcDerivation(arguments[i - 1]);
 
             arguments[i] = arguments[i - 1].next(stepSize, derivation);
 
@@ -47,7 +46,7 @@ public class GradientDescent extends AbstractOptimizer {
         return arguments[arguments.length - 1].toLine();
     }
 
-    private GradientDescentArgument calcDerivation(GradientDescentArgument arg) {
+    private SvmArgument calcDerivation(SvmArgument arg) {
         double argOffset = arg.getOffset();
         NormalVector argVector = arg.getNormalVector();
 
@@ -66,7 +65,7 @@ public class GradientDescent extends AbstractOptimizer {
         NormalVector resVec = new NormalVector(argVector.getW1() - 2 * C * sum.getW1(), argVector.getW2() - 2 * C * sum.getW2());
         double resOffset = -2 * C * offsetSum;
 
-        return new GradientDescentArgument(resVec, resOffset);
+        return new SvmArgument(resVec, resOffset);
     }
 
     private static double getLipschitzConstant(LabeledPoint[] points) {
@@ -84,7 +83,7 @@ public class GradientDescent extends AbstractOptimizer {
         return Math.max(Math.max(Math.max(sum, sum2), 2 * C), 1);
     }
 
-    private boolean stop(GradientDescentArgument before, GradientDescentArgument after) {
+    private boolean stop(SvmArgument before, SvmArgument after) {
         return Math.abs(Math.abs(before.getNormalVector().getW1()) - Math.abs(after.getNormalVector().getW1())) < STOP_DIFFERENCE
                 && Math.abs(Math.abs(before.getNormalVector().getW2()) - Math.abs(after.getNormalVector().getW2())) < STOP_DIFFERENCE
                 && Math.abs(Math.abs(before.getOffset()) - Math.abs(after.getOffset())) < STOP_DIFFERENCE;

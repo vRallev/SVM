@@ -1,6 +1,5 @@
 package net.vrallev.android.svm.method;
 
-import net.vrallev.android.svm.AbstractOptimizer;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
 import net.vrallev.android.svm.model.NormalVector;
@@ -33,15 +32,15 @@ public class SubGradientDescent extends AbstractOptimizer {
 
     @Override
     public Line innerOptimize() {
-        GradientDescentArgument[] arguments = new GradientDescentArgument[mIterations + 1];
-        arguments[0] = new GradientDescentArgument(mLine.getNormalVector().clone(), mLine.getOffset());
+        SvmArgument[] arguments = new SvmArgument[mIterations + 1];
+        arguments[0] = new SvmArgument(mLine.getNormalVector().clone(), mLine.getOffset());
 
         for (int i = 1; i < arguments.length; i++) {
             if (mCancelled) {
                 return null;
             }
 
-            GradientDescentArgument subGradient = getSubGradient(arguments[i - 1], 1D / 2D);
+            SvmArgument subGradient = getSubGradient(arguments[i - 1], 1D / 2D);
 
             double stepSize = getStepSize(i, mStepParameter);
             arguments[i] = arguments[i - 1].minus(subGradient.multipy(1D / subGradient.norm()).multipy(stepSize));
@@ -54,7 +53,7 @@ public class SubGradientDescent extends AbstractOptimizer {
         return arguments[arguments.length - 1].toLine();
     }
 
-    private GradientDescentArgument getSubGradient(GradientDescentArgument arg, double t) {
+    private SvmArgument getSubGradient(SvmArgument arg, double t) {
         double argOffset = arg.getOffset();
         NormalVector argVector = arg.getNormalVector();
 
@@ -84,14 +83,14 @@ public class SubGradientDescent extends AbstractOptimizer {
         NormalVector resVec = new NormalVector(argVector.getW1() + C * sum.getW1(), argVector.getW2() + C * sum.getW2());
         double resOffset = C * offsetSum;
 
-        return new GradientDescentArgument(resVec, resOffset);
+        return new SvmArgument(resVec, resOffset);
     }
 
     private double getStepSize(int iteration, double stepParameter) {
         return stepParameter / iteration;
     }
 
-    private boolean stop(GradientDescentArgument before, GradientDescentArgument after) {
+    private boolean stop(SvmArgument before, SvmArgument after) {
         return Math.abs(Math.abs(before.getNormalVector().getW1()) - Math.abs(after.getNormalVector().getW1())) < STOP_DIFFERENCE
                 && Math.abs(Math.abs(before.getNormalVector().getW2()) - Math.abs(after.getNormalVector().getW2())) < STOP_DIFFERENCE
                 && Math.abs(Math.abs(before.getOffset()) - Math.abs(after.getOffset())) < STOP_DIFFERENCE;
