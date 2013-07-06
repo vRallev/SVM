@@ -1,7 +1,9 @@
 package net.vrallev.android.svm;
 
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -12,9 +14,10 @@ import com.manuelpeinado.refreshactionitem.ProgressIndicatorType;
 import com.manuelpeinado.refreshactionitem.RefreshActionItem;
 import de.greenrobot.event.EventBus;
 import net.vrallev.android.base.BaseActivity;
-import net.vrallev.android.svm.gradient.DirtyLineEvent;
-import net.vrallev.android.svm.gradient.GradientDescent;
-import net.vrallev.android.svm.gradient.SubGradientDescent;
+import net.vrallev.android.svm.method.DirtyLineEvent;
+import net.vrallev.android.svm.method.GradientDescent;
+import net.vrallev.android.svm.method.NewtonMethod;
+import net.vrallev.android.svm.method.SubGradientDescent;
 import net.vrallev.android.svm.model.ColorClass;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
@@ -173,6 +176,16 @@ public class MainActivity extends BaseActivity {
 
         EventBus.getDefault().removeStickyEvent(event);
         EventBus.getDefault().removeStickyEvent(DirtyLineEvent.class);
+
+        if (event.isDiverged()) {
+            new AlertDialog.Builder(new ContextThemeWrapper(this, android.R.style.Theme_Holo_Dialog))
+                    .setCancelable(true)
+                    .setMessage("You have chosen a bad start value. The method diverged.\n\nThe starting line was reset.")
+                    .setTitle("Your fault")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setIcon(R.drawable.ic_launcher)
+                    .show();
+        }
     }
 
     public void onEventMainThread(DirtyLineEvent event) {
@@ -204,6 +217,9 @@ public class MainActivity extends BaseActivity {
             mCartesianCoordinateSystem.setLine(line, false);
         }
 
+        line.getNormalVector().setW1(line.getNormalVector().getW1() / line.getNormalVector().getW2());
+        line.getNormalVector().setW2(1);
+
         Optimizer optimizer;
         switch (mNavigationPosition) {
             case 0:
@@ -213,8 +229,7 @@ public class MainActivity extends BaseActivity {
                 optimizer = new GradientDescent(mCartesianCoordinateSystem.getLine(), mCartesianCoordinateSystem.getPoints());
                 break;
             case 2:
-                // TODO: add Newton's method
-                optimizer = new GradientDescent(mCartesianCoordinateSystem.getLine(), mCartesianCoordinateSystem.getPoints());
+                optimizer = new NewtonMethod(mCartesianCoordinateSystem.getLine(), mCartesianCoordinateSystem.getPoints());
                 break;
             default:
                 optimizer = null;

@@ -18,7 +18,7 @@ import de.greenrobot.event.EventBus;
 import net.vrallev.android.base.util.L;
 import net.vrallev.android.svm.MenuState;
 import net.vrallev.android.svm.OptimizerCalculator;
-import net.vrallev.android.svm.gradient.DirtyLineEvent;
+import net.vrallev.android.svm.method.DirtyLineEvent;
 import net.vrallev.android.svm.model.LabeledPoint;
 import net.vrallev.android.svm.model.Line;
 

@@ -1,4 +1,4 @@
-package net.vrallev.android.svm.gradient;
+package net.vrallev.android.svm.method;
 
 import net.vrallev.android.svm.model.Line;
 import net.vrallev.android.svm.model.NormalVector;

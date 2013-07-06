@@ -1,4 +1,4 @@
-package net.vrallev.android.svm.gradient;
+package net.vrallev.android.svm.method;
 
 import net.vrallev.android.svm.AbstractOptimizer;
 import net.vrallev.android.svm.model.LabeledPoint;
@@ -85,7 +85,7 @@ public class GradientDescent extends AbstractOptimizer {
     }
 
     private boolean stop(GradientDescentArgument before, GradientDescentArgument after) {
-        return Math.abs(Math.abs(before.getNormalVector().getW1()) - Math.abs(after.getNormalVector().getW1())) < STOP_DIFFERENCE / 10
+        return Math.abs(Math.abs(before.getNormalVector().getW1()) - Math.abs(after.getNormalVector().getW1())) < STOP_DIFFERENCE
                 && Math.abs(Math.abs(before.getNormalVector().getW2()) - Math.abs(after.getNormalVector().getW2())) < STOP_DIFFERENCE
                 && Math.abs(Math.abs(before.getOffset()) - Math.abs(after.getOffset())) < STOP_DIFFERENCE;
     }
