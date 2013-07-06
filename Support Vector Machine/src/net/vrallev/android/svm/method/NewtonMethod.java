@@ -42,6 +42,10 @@ public class NewtonMethod extends AbstractOptimizer {
 
         for (int i = 0; i < mIterations; i++) {
 
+            if (mCancelled) {
+                return null;
+            }
+
             derivation.putDouble(FIRST_DERIVATE_W1, firstDerivateW1(argument.getOffset(), C, mPoints, argument.getNormalVector()));
             derivation.putDouble(FIRST_DERIVATE_W2, firstDerivateW2(argument.getOffset(), C, mPoints, argument.getNormalVector()));
             derivation.putDouble(FIRST_DERIVATE_B, firstDerivateB(argument.getOffset(), C, mPoints, argument.getNormalVector()));
