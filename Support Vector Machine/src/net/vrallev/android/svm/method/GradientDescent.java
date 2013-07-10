@@ -78,7 +78,7 @@ public class GradientDescent extends AbstractOptimizer {
         }
 
         sum = 1 + 2 * C * sum;
-        sum2 = 1 * 2 * C * sum2;
+        sum2 = 1 + 2 * C * sum2;
 
         return Math.max(Math.max(Math.max(sum, sum2), 2 * C), 1);
     }
