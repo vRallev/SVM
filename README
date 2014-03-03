@@ -1,5 +1,0 @@
-This is a project for the Friedrich Schiller University of Jena. The goal is to write a support vector machine for Android. 
-
-This project depends on following libraries:
-- https://github.com/greenrobot/EventBus
-- https://github.com/ManuelPeinado/RefreshActionItem-Native
