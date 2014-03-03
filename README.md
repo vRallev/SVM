@@ -1,7 +1,7 @@
 Android SVM
 ============
 
-This is a project for a course from Professor Joachim Giesen I attended at the Friedrich Schiller University Jena. The goal is to write a support vector machine for Android. 
+This was a project for a course from Professor Joachim Giesen at the Friedrich Schiller University Jena. The task was to write a support vector machine. I've chosen Android as platform. 
 
 **Important:** This project uses Android's old build system. If you want to test the compiled project, install the [attached .apk file](SVM.apk).
 
